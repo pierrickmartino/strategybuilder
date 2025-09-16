@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+app/strategybuilder_backend.egg-info/PKG-INFO
+app/strategybuilder_backend.egg-info/SOURCES.txt
+app/strategybuilder_backend.egg-info/dependency_links.txt
+app/strategybuilder_backend.egg-info/requires.txt
+app/strategybuilder_backend.egg-info/top_level.txt
