@@ -1,0 +1,20 @@
+[project]
+name = "strategybuilder-backend"
+version = "0.1.0"
+description = "FastAPI backend for the Strategy Builder application"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.111.0,<1.0.0",
+  "uvicorn[standard]>=0.29.0,<1.0.0"
+]
+
+[tool.setuptools]
+package-dir = {"" = "app"}
+
+[tool.setuptools.packages.find]
+where = ["app"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

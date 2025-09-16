@@ -1,0 +1,22 @@
+# Node
+node_modules/
+.next/
+out/
+yarn.lock
+pnpm-lock.yaml
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.env
+venv/
+.venv/
+.env.local
+
+# General
+.DS_Store
+.idea/
+.vscode/
