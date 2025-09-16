@@ -1,6 +1,4 @@
-"use client";
-
-import { FormEvent, useState } from "react";
+import Link from "next/link";
 
 const highlights = [
   {
@@ -20,20 +18,7 @@ const highlights = [
   },
 ];
 
-const MOCK_EMAIL = "demo@strategybuilder.app";
-const MOCK_PASSWORD = "demo123";
-
 export default function Home() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const success = email === MOCK_EMAIL && password === MOCK_PASSWORD;
-    setMessage(success ? "Access granted! Loading workspace..." : "Invalid credentials. Try demo@strategybuilder.app / demo123.");
-  };
-
   return (
     <main className="flex min-h-screen flex-col gap-16 bg-slate-950 px-6 pb-20 pt-24 text-slate-100">
       <section className="mx-auto flex w-full max-w-4xl flex-col items-center text-center">
@@ -47,60 +32,15 @@ export default function Home() {
           Drag-and-drop your logic, backtest on historical data, and paper trade live markets — all from one
           browser workspace designed for beginners and pros alike.
         </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <a
-            href="#"
-            className="rounded-full bg-sky-500 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-sky-500/20 transition hover:bg-sky-400"
+        <div className="mt-8 flex flex-col items-center gap-2">
+          <Link
+            href="/auth"
+            className="rounded-full border border-sky-500/40 bg-sky-500/10 px-5 py-2 text-sm font-semibold text-sky-200 transition hover:bg-sky-500 hover:text-slate-950"
           >
-            Join the waitlist
-          </a>
-          <span className="text-sm text-slate-400">Free tier available at launch</span>
+            Access the demo workspace
+          </Link>
+          <span className="text-xs text-slate-400">Use demo credentials provided on the sign-in page.</span>
         </div>
-      </section>
-
-      <section className="mx-auto w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg shadow-slate-900/40">
-        <h2 className="text-xl font-semibold text-slate-100">Sign in to continue</h2>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm text-slate-300">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-              placeholder="demo@strategybuilder.app"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm text-slate-300">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-              placeholder="demo123"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-sky-500 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400"
-          >
-            Enter workspace
-          </button>
-        </form>
-        {message && (
-          <p className="mt-4 text-sm text-slate-300">
-            {message}
-          </p>
-        )}
       </section>
 
       <section className="mx-auto grid w-full max-w-5xl gap-6 sm:grid-cols-3">
