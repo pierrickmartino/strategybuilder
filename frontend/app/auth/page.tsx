@@ -1,11 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 const MOCK_EMAIL = "demo@strategybuilder.app";
 const MOCK_PASSWORD = "demo123";
 
 export default function AuthPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -13,7 +15,12 @@ export default function AuthPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const success = email === MOCK_EMAIL && password === MOCK_PASSWORD;
-    setMessage(success ? "Access granted! Loading workspace..." : "Invalid credentials. Try demo@strategybuilder.app / demo123.");
+    if (success) {
+      setMessage("Access granted! Redirecting...");
+      router.push("/strategies");
+    } else {
+      setMessage("Invalid credentials. Try demo@strategybuilder.app / demo123.");
+    }
   };
 
   return (
