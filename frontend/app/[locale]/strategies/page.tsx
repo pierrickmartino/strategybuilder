@@ -6,12 +6,14 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import StrategiesWorkspace from "./strategies-workspace";
 
 type StrategiesPageProps = {
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 };
 
-export default async function StrategiesPage({ params: { locale } }: StrategiesPageProps) {
+export default async function StrategiesPage({ params }: StrategiesPageProps) {
+  const { locale } = await params;
+
   if (!isLocale(locale)) {
     notFound();
   }

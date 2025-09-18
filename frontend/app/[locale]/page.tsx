@@ -5,12 +5,14 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 
 type HomePageProps = {
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 };
 
-export default async function HomePage({ params: { locale } }: HomePageProps) {
+export default async function HomePage({ params }: HomePageProps) {
+  const { locale } = await params;
+
   if (!isLocale(locale)) {
     notFound();
   }
@@ -28,7 +30,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
         <p className="mt-4 max-w-2xl text-lg text-slate-300">{hero.description}</p>
         <div className="mt-8 flex flex-col items-center gap-2">
           <Link
-            href="auth"
+            href={`/${locale}/auth`}
             className="rounded-full border border-sky-500/40 bg-sky-500/10 px-5 py-2 text-sm font-semibold text-sky-200 transition hover:bg-sky-500 hover:text-slate-950"
           >
             {hero.cta}

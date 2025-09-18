@@ -6,12 +6,14 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import AuthForm from "./auth-form";
 
 type AuthPageProps = {
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 };
 
-export default async function AuthPage({ params: { locale } }: AuthPageProps) {
+export default async function AuthPage({ params }: AuthPageProps) {
+  const { locale } = await params;
+
   if (!isLocale(locale)) {
     notFound();
   }
