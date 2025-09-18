@@ -1,6 +1,6 @@
 # Project Brief
 
-> Owner: **Business Analyst (Mary)** • Status: **Draft v0.1** • Date: 2025-09-18
+> Owner: **Business Analyst (Mary)** • Status: **Draft v0.2** • Date: 2025-09-18
 
 ---
 
@@ -14,27 +14,25 @@
   - **P1 Conversion:** Free→Premium conversion rate (target ≥5–8% in 90 days).
   - **E1 Engagement:** Weekly Active Builders (WAB) and backtests/user/week.
   - **R1 Retention:** 8‑week retention (target ≥30% of activated users).
-  - **D1 Deployment:** % of active users with ≥1 live strategy running.
+  - **C1 Comparison Adoption:** % of active users who compare ≥2 strategies per week.
 
 ## 2) Problem Statement
-- **Current pain(s):** Beginners and non‑programmers can’t easily design systematic strategies; backtesting is hard to trust/replicate; deployment requires stitching multiple tools and handling exchange APIs, keys, and infra; manual trading leads to inconsistent execution.
-- **Root cause (hypothesis):** Tools target advanced users; code‑heavy workflows; poor end‑to‑end integration (design→test→deploy); opaque assumptions around slippage/fees; operational load (servers, schedulers, monitoring).
-- **Impact if unsolved:** Retail traders stay excluded from systematic methods, churn after failed attempts, or take risky manual bets; low trust in results and low market adoption.
-- **Current pain(s):** <!-- observable symptoms and who experiences them -->
-- **Root cause (hypothesis):** <!-- what’s really broken? -->
-- **Impact if unsolved:** <!-- quantify where possible -->
+- **Current pain(s):** Beginners and non‑programmers can’t easily design systematic strategies; backtesting is hard to trust/replicate; most tools push users toward risky live deployments.
+- **Root cause (hypothesis):** Tools target advanced users; code‑heavy workflows; poor end‑to‑end integration (design→test→compare); opaque assumptions around slippage/fees; lack of safe, high‑fidelity simulation environments.
+- **Impact if unsolved:** Retail traders stay excluded from systematic methods or take risky manual bets; low trust in results and low market adoption; regulatory risk if products encourage live trading without sufficient guardrails.
 
 ## 3) Goals & Non‑Goals
 - **Primary goals:**
-  - Deliver an intuitive no‑code strategy builder with core blocks (indicators, signals, risk controls, order routing).
+  - Deliver an intuitive no‑code strategy builder with core blocks (indicators, signals, risk controls, order simulation).
   - Provide fast, reproducible backtests with realistic assumptions (fees, slippage, tick size) and clear metrics.
-  - Enable one‑click deployment to supported exchanges with secure key management.
-  - Launch a **freemium** model: generous free tier with limits; premium unlocks unlimited usage and advanced features.
+  - Offer **paper‑trading only** execution with high‑fidelity simulation; enable side‑by‑side and head‑to‑head strategy comparisons over identical periods.
+  - Launch a **freemium** model: generous free tier with limits; premium unlocks unlimited usage and advanced analytics.
 - **Secondary goals:**
   - Template library and community sharing/cloning.
   - Guided education/onboarding (recipes, tutorials).
-  - Strategy performance dashboards and alerts.
+  - Strategy performance dashboards, comparisons, and alerts on simulated runs.
 - **Non‑goals / out of scope (v1):**
+  - Live trading or exchange API key connections.
   - High‑frequency trading or sub‑second execution.
   - Proprietary financial advice or auto‑ML strategy generation.
   - Custody of user funds; on‑chain smart‑contract execution.
@@ -47,34 +45,30 @@
   1) “Design a rules‑based strategy without writing code.”
   2) “Backtest quickly on historical data I trust, then iterate.”
   3) “Deploy live with risk controls and monitor results in one place.”
-- **Primary user(s):** <!-- who benefits first -->
-- **Secondary stakeholders:** <!-- buyer, admin, ops, compliance, etc. -->
-- **Key jobs‑to‑be‑done:** <!-- top 3 JTBD in the user’s words -->
 
 ## 5) Key Use Cases / User Journeys
 1. **Create → Backtest → Iterate:** User drags blocks (indicators, logic, risk) → sets params → runs backtest → reviews equity curve, drawdown, win rate → tweaks and re‑tests.
 2. **Optimize & Validate:** Run parameter sweeps; compare variants; check overfitting guards (train/test split, walk‑forward).
-3. **Deploy Live:** Connect exchange via API keys → select trading pair(s) and budget → set risk limits (max position, stop, daily loss) → schedule bot.
-4. **Monitor & Alert:** Real‑time PnL, positions, orders; email/Telegram/Push alerts; pause/resume.
+3. **Paper‑Trade Simulation:** Schedule simulated strategies with paper portfolios; evaluate out‑of‑sample performance over time.
+4. **Compare Strategies:** Select multiple strategies/runs → normalized time/window comparison; leaderboard for user’s own strategies.
 5. **Discover & Clone:** Browse community templates; clone, personalize, and test.
 
 ## 6) Scope
-- **In scope (v1):** Web app (Next.js) with visual builder, backtesting service (FastAPI), Supabase auth/storage, TimescaleDB market data, connectors for top exchanges (e.g., Coinbase Advanced Trade, Binance, Kraken), billing (Stripe), alerts, basic template library.
-- **Out of scope (v1):** Native mobile; options/futures strategies; social leaderboards; on‑chain execution; automated strategy marketplace.
-- **In scope:** <!-- capabilities, platforms, locales -->
-- **Out of scope:** <!-- cut lines to protect timeline -->
+- **In scope (v1):** Web app (Next.js) with visual builder, backtesting service (FastAPI), Supabase auth/storage, TimescaleDB market data, **paper‑trading engine** (order book & execution simulator), billing (Stripe), alerts, basic template library, comparison dashboards.
+- **Out of scope (v1):** Live trading; exchange API key management; options/futures strategies; social leaderboards; on‑chain execution; automated strategy marketplace.
 
 ## 7) Functional Requirements (FRD)
 - **Strategy Builder:**
-  - Drag‑and‑drop nodes (Data → Indicators → Signals → Risk → Execution).
+  - Drag‑and‑drop nodes (Data → Indicators → Signals → Risk → Execution Simulator).
   - Versioning and save/load; parameter inputs with validation.
 - **Backtesting Engine:**
   - Candles (1m+) initially; model fees, slippage, min order size; PnL, Sharpe, max DD, hit rate, exposure.
   - Parameter sweeps; train/test split; exportable reports.
-- **Deployment & Connectors:**
-  - Secure exchange connections; paper trading and live modes; scheduling; fail‑safe stops.
-- **Monitoring & Alerts:**
-  - Live metrics, orders/positions feed; email/Telegram/Web push alerts; pause/resume.
+- **Paper‑Trading Engine:**
+  - Virtual portfolios; scheduled simulated runs; order matching against historical or synthetic order books; latency/slippage models.
+  - Head‑to‑head comparisons for identical periods and assets; leaderboard and best‑run tagging within a workspace.
+- **Monitoring & Alerts (Simulated):**
+  - Simulated PnL, orders/positions feed; email/Telegram/Web push alerts; pause/resume simulations.
 - **Templates & Onboarding:**
   - Curated starter strategies; clone/edit; guided tutorials.
 - **Account & Billing:**
@@ -82,59 +76,42 @@
 
 ## 8) Non‑Functional Requirements (NFR)
 - **Performance:** Backtest 1 year of 1m candles for a pair in <30s on standard tier; UI TTI <2s on broadband.
-- **Reliability:** Core services SLO 99.5%; graceful degradation if an exchange is degraded; job retries & idempotency.
-- **Security & Privacy:** Encrypted API keys at rest and in transit; scoped secrets; least‑privilege; audit trails; regular key rotation guidance.
+- **Reliability:** Core services SLO 99.5%; graceful degradation if data provider is degraded; job retries & idempotency.
+- **Security & Privacy:** No storage of exchange API keys; user data encrypted at rest and in transit; least‑privilege; audit trails.
 - **Accessibility:** WCAG 2.1 AA baseline.
 - **Internationalization/Localization:** Timezone‑aware UI; EN at launch; multi‑fiat display.
-- **Performance:** <!-- SLAs, latency, throughput targets -->
-- **Reliability:** <!-- SLOs, error budgets, RTO/RPO if relevant -->
-- **Security & Privacy:** <!-- authn/z, data classes, compliance flags -->
-- **Accessibility:** <!-- WCAG targets -->
-- **Internationalization/Localization:** <!-- locales, timezones -->
 
 ## 9) Integrations & Data
-- **Internal systems:** Next.js (App Router), FastAPI services, Supabase (auth/storage), TimescaleDB for time‑series; background workers (Celery/Redis) for backtests & live trading jobs.
-- **External vendors/APIs:** Exchange APIs (Coinbase Advanced Trade, Binance, Kraken, others later), Stripe for billing, email/SMS/Telegram for alerts, Sentry/Datadog for monitoring.
-- **Data model notes:** Core entities: User, Strategy, Version, Run (backtest), Deployment, Order, Position, Metric. Sensitive: exchange API keys; retain only hashed/enc.
+- **Internal systems:** Next.js (App Router), FastAPI services, Supabase (auth/storage), TimescaleDB for time‑series; background workers (Celery/Redis) for backtests & simulations.
+- **External vendors/APIs:** Market data providers (e.g., WebSocket/REST crypto price feeds), Stripe for billing, email/SMS/Telegram for alerts, Sentry/Datadog for monitoring.
+- **Data model notes:** Core entities: User, Strategy, Version, Run (backtest), Simulation, Order, Position, Metric, Comparison. **No exchange API keys stored.**
 
 ## 10) Constraints & Assumptions
 - **Budget:** <!-- tbd -->
-- **Timeline:** Target **Beta** within 12–16 weeks of project start; private alpha earlier with paper trading only.
+- **Timeline:** Target **Beta** within 12–16 weeks of project start; private alpha earlier with backtest + paper‑trading only.
 - **Resources:** FE (Next.js/Tailwind), BE (FastAPI/Python), DevOps, Designer, PM/BA; part‑time DS/Quant helpful.
-- **Technical constraints:** Stack fixed to Next.js, FastAPI, Supabase, TimescaleDB, TailwindCSS; prefer Python/Pandas/NumPy for backtests; Redis for queues.
+- **Technical constraints:** Stack fixed to Next.js, FastAPI, Supabase, TimescaleDB, TailwindCSS; prefer Python/Pandas/NumPy for engines; Redis for queues.
 - **Key assumptions:**
-  - Users are willing to connect exchange API keys after a paper‑trade trial.
+  - Product remains **simulation‑only** (no brokerage or exchange connectivity) for v1.
   - Freemium model drives top‑of‑funnel; premium priced monthly with trial.
-  - Initial focus on spot trading; futures/options later.
-- **Budget:** <!-- range or ceiling -->
-- **Timeline:** <!-- key dates/milestones, e.g., Beta on YYYY‑MM‑DD -->
-- **Resources:** <!-- team capacity, roles available -->
-- **Technical constraints:** <!-- stack, legacy systems, envs -->
-- **Key assumptions:**
-  - <!-- assumption 1 -->
-  - <!-- assumption 2 -->
+  - Initial focus on spot assets; futures/options later (still simulated).
 
 ## 11) Risks & Open Questions
 - **Key risks:**
-  - **R1 Regulatory:** Changing crypto rules per region may restrict features; mitigation: start with paper trading in restricted geos.
+  - **R1 Regulatory/Perception:** Must avoid implying real trading or financial advice; mitigation: explicit disclaimers, simulation‑only messaging, gating language.
   - **R2 Data Quality:** Bad candles or missing data can invalidate results; mitigation: validation, gap‑fill policies, provenance.
-  - **R3 Exchange Reliability/Rate Limits:** Downtime or throttling affects live bots; mitigation: circuit breakers, adaptive pacing, multi‑exchange failover.
-  - **R4 Security:** API key compromise risk; mitigation: encryption, key scoping, secrets vault, strict permissions.
-  - **R5 Overfitting/User Harm:** Users may deploy unrealistic strategies; mitigation: walk‑forward tests, warnings, education.
+  - **R3 Model Realism:** Over‑optimistic fills or liquidity assumptions mislead users; mitigation: conservative defaults, sensitivity analysis, transparency in assumptions.
+  - **R4 Overfitting/User Harm:** Users may overfit to history; mitigation: walk‑forward tests, education, warnings.
 - **Open questions:**
-  - Launch geographies and exchange list for v1?
+  - Which market data sources and licenses for launch?
   - Premium price point and free‑tier limits?
   - Minimum viable set of indicators/blocks at launch?
-  - Paper vs live trading split at Beta?
-  - How to handle fees, slippage, and liquidity modeling defaults?
+  - Comparison UX: pairwise, tournament, or dashboard‑style by default?
   - Community template moderation policy?
 - **Areas needing further research:**
-  - Competitive landscape & differentiators; compliance requirements by region; support load modeling.
+  - Competitive landscape & differentiators; compliance requirements for simulation products by region; support load modeling.
 
 ## 12) Appendices (optional)
-- **A. Research summary:** <!-- market/comp/user insights -->
-- **B. Stakeholder input:** <!-- notes from interviews/discovery -->
-- **C. References/links:** <!-- URLs, docs, tickets -->
 - **A. Research summary:** <!-- market/comp/user insights -->
 - **B. Stakeholder input:** <!-- notes from interviews/discovery -->
 - **C. References/links:** <!-- URLs, docs, tickets -->
