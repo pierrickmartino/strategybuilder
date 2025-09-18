@@ -2,19 +2,22 @@
 
 import { FormEvent, useState } from "react";
 
+import type { Dictionary } from "@/i18n/get-dictionary";
+
 type Strategy = {
   id: number;
   name: string;
   notes: string;
 };
 
-const DEMO_STRATEGIES: Strategy[] = [
-  { id: 1, name: "Mean Reversion", notes: "Buy dips, sell spikes." },
-  { id: 2, name: "Breakout", notes: "Ride momentum after key levels." },
-];
+type StrategiesWorkspaceProps = {
+  dictionary: Dictionary["strategies"];
+};
 
-export default function StrategiesPage() {
-  const [strategies, setStrategies] = useState(DEMO_STRATEGIES);
+export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceProps) {
+  const [strategies, setStrategies] = useState<Strategy[]>(() =>
+    dictionary.demoStrategies.map((strategy) => ({ ...strategy }))
+  );
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -28,14 +31,17 @@ export default function StrategiesPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!name.trim()) return;
+
     const next: Strategy = {
       id: editingId ?? Date.now(),
       name: name.trim(),
       notes: notes.trim(),
     };
+
     setStrategies((prev) =>
       editingId ? prev.map((item) => (item.id === editingId ? next : item)) : [...prev, next]
     );
+
     reset();
   };
 
@@ -43,13 +49,13 @@ export default function StrategiesPage() {
     <main className="min-h-screen bg-slate-950 px-6 py-16 text-slate-100">
       <section className="mx-auto grid w-full max-w-3xl gap-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-8 shadow-xl shadow-slate-900/40">
         <header className="space-y-2">
-          <h1 className="text-3xl font-semibold">Strategy Workspace</h1>
-          <p className="text-sm text-slate-400">Mocked flowchart editor placeholder with simple CRUD for strategies.</p>
+          <h1 className="text-3xl font-semibold">{dictionary.heading}</h1>
+          <p className="text-sm text-slate-400">{dictionary.description}</p>
         </header>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-2">
             <label className="text-sm text-slate-300" htmlFor="name">
-              Strategy name
+              {dictionary.nameLabel}
             </label>
             <input
               id="name"
@@ -57,19 +63,19 @@ export default function StrategiesPage() {
               onChange={(event) => setName(event.target.value)}
               required
               className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-              placeholder="e.g. Trend Following"
+              placeholder={dictionary.namePlaceholder}
             />
           </div>
           <div className="grid gap-2">
             <label className="text-sm text-slate-300" htmlFor="notes">
-              Notes
+              {dictionary.notesLabel}
             </label>
             <textarea
               id="notes"
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               className="min-h-[96px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-              placeholder="Outline the decision flow for this strategy"
+              placeholder={dictionary.notesPlaceholder}
             />
           </div>
           <div className="flex items-center gap-3">
@@ -77,7 +83,7 @@ export default function StrategiesPage() {
               type="submit"
               className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400"
             >
-              {editingId ? "Save changes" : "Create strategy"}
+              {editingId ? dictionary.saveAction : dictionary.createAction}
             </button>
             {editingId && (
               <button
@@ -85,7 +91,7 @@ export default function StrategiesPage() {
                 onClick={reset}
                 className="text-sm text-slate-400 hover:text-slate-200"
               >
-                Cancel edit
+                {dictionary.cancelAction}
               </button>
             )}
           </div>
@@ -110,21 +116,23 @@ export default function StrategiesPage() {
                   }}
                   className="rounded-lg border border-slate-700 px-3 py-1 hover:border-sky-400 hover:text-sky-300"
                 >
-                  Edit
+                  {dictionary.editAction}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStrategies((prev) => prev.filter((item) => item.id !== strategy.id))}
+                  onClick={() =>
+                    setStrategies((prev) => prev.filter((item) => item.id !== strategy.id))
+                  }
                   className="rounded-lg border border-red-500 px-3 py-1 text-red-400 hover:bg-red-500/10"
                 >
-                  Delete
+                  {dictionary.deleteAction}
                 </button>
               </div>
             </li>
           ))}
           {strategies.length === 0 && (
             <li className="rounded-xl border border-dashed border-slate-800 bg-slate-950/40 p-6 text-center text-sm text-slate-400">
-              No strategies yet. Add one to start shaping the flowchart.
+              {dictionary.emptyState}
             </li>
           )}
         </ul>
