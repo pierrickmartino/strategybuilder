@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 import type { Dictionary } from "@/i18n/get-dictionary";
@@ -15,6 +17,7 @@ type StrategiesWorkspaceProps = {
 };
 
 export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceProps) {
+  const { locale } = useParams<{ locale: string }>();
   const [strategies, setStrategies] = useState<Strategy[]>(() =>
     dictionary.demoStrategies.map((strategy) => ({ ...strategy }))
   );
@@ -107,6 +110,12 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
                 {strategy.notes && <p className="mt-1 text-sm text-slate-400">{strategy.notes}</p>}
               </div>
               <div className="flex gap-2 text-sm">
+                <Link
+                  href={`/${locale}/strategies/${strategy.id}/designer`}
+                  className="rounded-lg border border-sky-500 px-3 py-1 text-sky-300 hover:bg-sky-500/10"
+                >
+                  {dictionary.designerAction}
+                </Link>
                 <button
                   type="button"
                   onClick={() => {

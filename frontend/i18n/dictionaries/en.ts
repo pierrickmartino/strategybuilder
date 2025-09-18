@@ -69,11 +69,18 @@ const en = {
     cancelAction: "Cancel edit",
     editAction: "Edit",
     deleteAction: "Delete",
+    designerAction: "Open designer",
     emptyState: "No strategies yet. Add one to start shaping the flowchart.",
     demoStrategies: [
       { id: 1, name: "Mean Reversion", notes: "Buy dips, sell spikes." },
       { id: 2, name: "Breakout", notes: "Ride momentum after key levels." },
     ],
+  },
+  designer: {
+    heading: "Strategy Designer",
+    description: "Mocked React Flow canvas to sketch how trades unfold.",
+    backAction: "Back to strategies",
+    untitled: "Untitled strategy",
   },
 };
 
