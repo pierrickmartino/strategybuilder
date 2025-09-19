@@ -24,6 +24,23 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const metricTemplates = [
+    [
+      ["ROI", "+12%"],
+      ["Win rate", "58%"],
+      ["Max DD", "-7%"],
+    ],
+    [
+      ["ROI", "+18%"],
+      ["Win rate", "62%"],
+      ["Max DD", "-5%"],
+    ],
+    [
+      ["ROI", "+9%"],
+      ["Win rate", "55%"],
+      ["Max DD", "-4%"],
+    ],
+  ];
 
   const reset = () => {
     setEditingId(null);
@@ -99,46 +116,60 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
             )}
           </div>
         </form>
-        <ul className="space-y-3">
-          {strategies.map((strategy) => (
-            <li
-              key={strategy.id}
-              className="flex items-start justify-between gap-4 rounded-xl border border-slate-800 bg-slate-950/60 px-4 py-3"
-            >
-              <div>
-                <h2 className="text-lg font-semibold">{strategy.name}</h2>
-                {strategy.notes && <p className="mt-1 text-sm text-slate-400">{strategy.notes}</p>}
-              </div>
-              <div className="flex gap-2 text-sm">
-                <Link
-                  href={`/${locale}/strategies/${strategy.id}/designer`}
-                  className="rounded-lg border border-sky-500 px-3 py-1 text-sky-300 hover:bg-sky-500/10"
-                >
-                  {dictionary.designerAction}
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingId(strategy.id);
-                    setName(strategy.name);
-                    setNotes(strategy.notes);
-                  }}
-                  className="rounded-lg border border-slate-700 px-3 py-1 hover:border-sky-400 hover:text-sky-300"
-                >
-                  {dictionary.editAction}
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setStrategies((prev) => prev.filter((item) => item.id !== strategy.id))
-                  }
-                  className="rounded-lg border border-red-500 px-3 py-1 text-red-400 hover:bg-red-500/10"
-                >
-                  {dictionary.deleteAction}
-                </button>
-              </div>
-            </li>
-          ))}
+        <ul className="grid gap-4 sm:grid-cols-2">
+          {strategies.map((strategy, index) => {
+            const stats = metricTemplates[index % metricTemplates.length];
+            return (
+              <li
+                key={strategy.id}
+                className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-5 shadow shadow-slate-900/40"
+              >
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-100">{strategy.name}</h2>
+                  {strategy.notes && <p className="mt-1 text-sm text-slate-400">{strategy.notes}</p>}
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-xs uppercase tracking-wide text-slate-400">
+                  {stats.map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="rounded-xl border border-slate-800/80 bg-slate-950/60 px-3 py-2"
+                    >
+                      <p>{label}</p>
+                      <p className="mt-1 text-base font-semibold text-slate-100">{value}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2 text-sm">
+                  <Link
+                    href={`/${locale}/strategies/${strategy.id}/designer`}
+                    className="rounded-lg border border-sky-500 px-3 py-1 text-sky-300 hover:bg-sky-500/10"
+                  >
+                    {dictionary.designerAction}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(strategy.id);
+                      setName(strategy.name);
+                      setNotes(strategy.notes);
+                    }}
+                    className="rounded-lg border border-slate-700 px-3 py-1 hover:border-sky-400 hover:text-sky-300"
+                  >
+                    {dictionary.editAction}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setStrategies((prev) => prev.filter((item) => item.id !== strategy.id))
+                    }
+                    className="rounded-lg border border-red-500 px-3 py-1 text-red-400 hover:bg-red-500/10"
+                  >
+                    {dictionary.deleteAction}
+                  </button>
+                </div>
+              </li>
+            );
+          })}
           {strategies.length === 0 && (
             <li className="rounded-xl border border-dashed border-slate-800 bg-slate-950/40 p-6 text-center text-sm text-slate-400">
               {dictionary.emptyState}
