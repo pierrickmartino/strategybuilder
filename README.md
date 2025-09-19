@@ -34,6 +34,17 @@ uvicorn app.main:app --reload
 
 The API will be available on http://127.0.0.1:8000 and exposes a `/health` endpoint for quick smoke testing.
 
+## Testing
+
+Run the project test suite with the helper script at the repository root:
+
+```bash
+./scripts/test.sh
+```
+
+The script currently exercises the FastAPI backend's health endpoint using Python's built-in `unittest` runner. Additional test
+s can be added over time and wired into the same entry point to keep execution consistent.
+
 ## Next steps
 
 - Connect the frontend to backend endpoints using `fetch` or your preferred HTTP client.
