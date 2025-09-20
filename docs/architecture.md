@@ -6,28 +6,29 @@ This document outlines the complete fullstack architecture for Blockbuilders, in
 This unified approach combines what would traditionally be separate backend and frontend architecture documents, streamlining the development process for modern fullstack applications where these concerns are increasingly intertwined.
 
 ### Starter Template or Existing Project
-N/A – greenfield project. We intentionally assemble a Turborepo monorepo combining a Next.js 14 App Router frontend with a FastAPI backend (as mandated by the PRD) so we can codify shared types, design tokens, and generated API clients while keeping services modular.
+N/A – greenfield project. We intentionally assemble a Turborepo monorepo combining a Next.js 15 App Router frontend with a FastAPI backend (as mandated by the PRD) so we can codify shared types, design tokens, and generated API clients while keeping services modular.
 
 ### Change Log
 | Date | Version | Description | Author |
 | --- | --- | --- | --- |
+| 2025-09-21 | v0.2 | Supabase adoption for auth and managed Postgres | Codex (AI) |
 | 2025-09-20 | v0.1 | Initial fullstack architecture synthesized from PRD + UI spec | Winston (Architect) |
 
 ## High Level Architecture
 
 ### Technical Summary
-Blockbuilders adopts a composable hybrid: the user experience is delivered by Next.js 14 on Vercel Edge, while a containerized FastAPI core on AWS Fargate exposes REST APIs, orchestrates simulations, and enforces compliance. Long-running backtests and paper-trading loops execute asynchronously through Celery workers on AWS Batch backed by Redis Streams and TimescaleDB hypertables. Auth0 supplies OIDC tokens propagated to both frontend guards (Zustand + middleware) and backend policy checks. Object storage in S3 retains strategy exports, audit packages, and simulation artifacts, and Datadog/Sentry instrumentation spans every component so anomalies surface within the five-minute NFR window. This architecture keeps first-win onboarding fast, makes results trustworthy, and scales into community sharing without sacrificing governance.
+Blockbuilders adopts a composable hybrid: the user experience is delivered by Next.js 15 on Vercel Edge, while a containerized FastAPI core on AWS Fargate exposes REST APIs, orchestrates simulations, and enforces compliance. Long-running backtests and paper-trading loops execute asynchronously through Celery workers on AWS Batch backed by Redis Streams and Supabase Postgres hypertables (Timescale extension). Supabase supplies managed Postgres, row-level security, and JWT-based auth that both frontend guards (Zustand + middleware) and backend policy checks consume. Object storage in S3 retains strategy exports, audit packages, and simulation artifacts (with Supabase Storage handling avatars and lightweight uploads), and Datadog/Sentry instrumentation spans every component so anomalies surface within the five-minute NFR window. This architecture keeps first-win onboarding fast, makes results trustworthy, and scales into community sharing without sacrificing governance.
 
 ### Platform and Infrastructure Choice
-**Option A – AWS + Vercel hybrid (recommended):** Aligns with FastAPI, provides mature worker orchestration (ECS/Fargate or Batch), strong IAM, and integrates cleanly with Timescale Cloud. Requires moderate DevOps investment but keeps costs within the $8K/month beta target.
-**Option B – GCP Cloud Run + Cloud SQL:** Simplifies container deploys and autoscaling but complicates Timescale usage and introduces added latency between Vercel and Google perimeter.
+**Option A – Vercel + Supabase + AWS workers (recommended):** Keeps Next.js on Vercel Edge while delegating auth, managed Postgres (Timescale + pgvector extensions), and lightweight storage to Supabase. AWS Fargate/Batch continue powering FastAPI and simulation workloads with minimal infrastructure drift.
+**Option B – Fully AWS-managed stack:** Replace Supabase with Aurora PostgreSQL and Cognito. Reduces third-party dependencies but requires heavier IAM authoring and custom policy enforcement before we can ship.
 **Option C – Render + Neon serverless Postgres:** Lowest barrier to entry yet lacks compliance guardrails, fine-grained observability, and battle-tested worker orchestration.
 
 Proceeding with Option A pending stakeholder confirmation.
 
-**Platform:** AWS + Vercel hybrid (primary region us-east-1)
-**Key Services:** Vercel edge hosting, AWS Fargate (FastAPI), AWS Batch + Celery workers, AWS ElastiCache for Redis Streams, Timescale Cloud (PostgreSQL), Amazon S3, AWS EventBridge, Auth0, Stripe
-**Deployment Host and Regions:** Vercel global edge (routing to IAD) + AWS us-east-1 for backend, workers, and data
+**Platform:** Vercel Edge + Supabase (managed Postgres/Auth) + AWS us-east-1 compute
+**Key Services:** Vercel edge hosting, Supabase (Postgres, Auth, Storage, Row Level Security), AWS Fargate (FastAPI), AWS Batch + Celery workers, AWS ElastiCache for Redis Streams, Amazon S3, AWS EventBridge, Stripe
+**Deployment Host and Regions:** Vercel global edge (routing to IAD) + Supabase us-east-1 project + AWS us-east-1 for backend, workers, and data
 
 ### Repository Structure
 Monorepo managed by Turborepo + pnpm. `apps/web` hosts the Next.js frontend, `apps/api` the FastAPI service, `apps/workers` the Celery worker fleet, and `packages` holds shared TypeScript types, generated OpenAPI clients, design tokens, and lint configs. Terraform in `infrastructure/terraform` provisions AWS, and `infrastructure/vercel` captures edge config.
@@ -40,16 +41,17 @@ System_Boundary(blockbuilders, "Blockbuilders Platform") {
   Container(web, "Next.js App", "Vercel Edge", "Canvas, onboarding, dashboards")
   Container(api, "FastAPI Core", "AWS Fargate", "REST APIs, governance, orchestration")
   Container(worker, "Simulation Workers", "AWS Batch", "Backtests, paper trading, analytics")
-  ContainerDb(db, "TimescaleDB", "Managed Timescale Cloud", "Canonical state + time-series")
+  ContainerDb(db, "Supabase Postgres", "Managed Supabase (Timescale extension)", "Canonical state + time-series + RLS")
   Container(queue, "Redis Streams", "ElastiCache", "Job + alert queues")
   Container(storage, "Artifact Bucket", "S3", "Exports, trade logs, evidence")
   Container(notify, "Notification Service", "FastAPI/Celery", "Email, in-app, webhooks")
 }
-System_Ext(auth0, "Auth0", "OIDC identity")
+System_Ext(supabase_auth, "Supabase Auth", "JWT issuance + row-level policies")
 System_Ext(stripe, "Stripe", "Billing + entitlements")
 System_Ext(market, "Institutional Data API", "Historical + live prices")
 Rel(user, web, "Builds strategies, monitors results")
 Rel(web, api, "REST / SSE")
+Rel(web, supabase_auth, "Auth flows, session refresh")
 Rel(api, queue, "Publish jobs")
 Rel(queue, worker, "Deliver workload")
 Rel(worker, market, "Fetch price data")
@@ -57,7 +59,7 @@ Rel(worker, db, "Persist metrics")
 Rel(api, db, "CRUD")
 Rel(api, storage, "Store artifacts")
 Rel(api, notify, "Trigger notifications")
-Rel(api, auth0, "Validate tokens")
+Rel(api, supabase_auth, "Validate tokens / sync roles")
 Rel(api, stripe, "Billing webhooks")
 Rel(notify, user, "Emails & in-app alerts")
 ```
@@ -65,21 +67,21 @@ Rel(notify, user, "Emails & in-app alerts")
 ### Architectural Patterns
 - Modular monorepo with shared contracts to prevent drift between UI and API.
 - REST + async orchestration: synchronous CRUD, asynchronous Redis Streams + Celery for heavy simulations.
-- Event-sourced compliance trail stored in TimescaleDB and mirrored to S3 for tamper evidence.
+- Event-sourced compliance trail stored in Supabase Postgres (Timescale extension) and mirrored to S3 for tamper evidence.
 - Progressive disclosure via a thin frontend service layer that aggregates backend responses to satisfy UI spec guardrails.
-- Defense-in-depth security: OIDC tokens, signed Stripe and market-data webhooks, encrypted transport/storage everywhere.
+- Defense-in-depth security: Supabase JWT + row-level policies, signed Stripe and market-data webhooks, encrypted transport/storage everywhere.
 
 ## Tech Stack
 | Layer | Technology | Rationale |
 | --- | --- | --- |
-| Frontend | Next.js 14 (App Router), TypeScript, Tailwind, Radix UI | Matches UX spec, supports SSR/ISR, strong component ergonomics. |
+| Frontend | Next.js 15 (App Router), TypeScript, Tailwind, Radix UI | Matches UX spec, supports SSR/ISR, strong component ergonomics. |
 | Frontend State | React Query + Zustand + Zustand persist | Separates server data from canvas draft state; optimistic UX for validation. |
 | Backend | FastAPI, Uvicorn, SQLAlchemy, Pydantic v2 | High-performance async APIs with strict schema validation and OpenAPI generation. |
 | Workers | Celery 5, Redis Streams, AWS Batch, Pandas, vectorbt | Durable backtests/paper trading with horizontal scaling and time-series tooling. |
-| Database | TimescaleDB (PostgreSQL 15) | Native time-series compression, analytical queries, SQL familiarity. |
+| Database | Supabase Postgres (Timescale + pgvector) | Managed Postgres with row-level security, native time-series compression, analytical queries. |
 | Cache/Queue | AWS ElastiCache for Redis | Job queue, transient cache, pub/sub for notifications. |
 | Object Storage | Amazon S3 | Strategy exports, compliance evidence, large result sets. |
-| Auth | Auth0 (OIDC), JWT access tokens | Managed identity with RBAC and anomaly detection. |
+| Auth | Supabase Auth (JWT + Row Level Security) | Unified auth + Postgres policies, fast iteration without custom IAM plumbing. |
 | Billing | Stripe Billing + Customer Portal | Enables freemium caps and premium upgrades with auditability. |
 | Observability | Datadog APM + Logs, Sentry, OpenTelemetry | Meets NFR latency + anomaly detection requirements. |
 | IaC & CI/CD | Terraform + Terragrunt, GitHub Actions, Vercel Deploy Hooks | Repeatable environments, automated build/test/deploy with approvals. |
@@ -90,7 +92,7 @@ Rel(notify, user, "Emails & in-app alerts")
 **Purpose:** Authenticated actor (builder, tinkerer, educator, admin) owning strategies, templates, and notifications.
 
 **Key Attributes:**
-- id: UUID – Primary identifier synchronized from Auth0
+- id: UUID – Primary identifier from Supabase `auth.users`
 - email: string – Unique contact for alerts
 - display_name: string – Profile name
 - roles: string[] – Role claims controlling access (builder, educator, admin)
@@ -376,11 +378,11 @@ components:
 **Key Interfaces:**
 - REST client generated from OpenAPI
 - Server-sent events for backtest progress
-- Auth0 SDK for session/token management
+- Supabase auth helpers for session/token management
 
-**Dependencies:** Auth service, Strategy API, Notification API
+**Dependencies:** Supabase Auth service, Strategy API, Notification API
 
-**Technology Stack:** Next.js 14, React 18, Tailwind, React Query, Zustand
+**Technology Stack:** Next.js 15, React 18, Tailwind, React Query, Zustand
 
 ### FastAPI Core Service
 **Responsibility:** Exposes CRUD, enforces quotas, orchestrates jobs, handles compliance/billing webhooks.
@@ -388,9 +390,9 @@ components:
 **Key Interfaces:**
 - `/api/v1` REST endpoints
 - Redis Streams and EventBridge for async orchestration
-- Stripe and Auth0 webhook endpoints
+- Stripe webhooks and Supabase service role callbacks
 
-**Dependencies:** TimescaleDB, Redis, S3, Auth0, Stripe
+**Dependencies:** Supabase Postgres, Redis, S3, Stripe
 
 **Technology Stack:** FastAPI, SQLAlchemy, Pydantic, Celery producers
 
@@ -399,10 +401,10 @@ components:
 
 **Key Interfaces:**
 - Consumes `simulation.run` stream
-- Writes metrics to TimescaleDB, artifacts to S3
+- Writes metrics to Supabase Postgres (Timescale extension), artifacts to S3
 - Emits events to Notification service
 
-**Dependencies:** Institutional market data API, TimescaleDB, Redis
+**Dependencies:** Institutional market data API, Supabase Postgres, Redis
 
 **Technology Stack:** Python, Celery, Pandas, NumPy, vectorbt, TA-Lib
 
@@ -414,7 +416,7 @@ components:
 - REST callbacks for anomaly escalation
 - Notification service integration
 
-**Dependencies:** Simulation worker, TimescaleDB, Notification service
+**Dependencies:** Simulation worker, Supabase Postgres, Notification service
 
 **Technology Stack:** Celery beat, FastAPI background tasks, Redis
 
@@ -424,9 +426,9 @@ components:
 **Key Interfaces:**
 - Consumes `notify.event` stream
 - SES/Postmark email, WebSocket gateway for in-app center
-- Writes Notification records to TimescaleDB
+- Writes Notification records to Supabase Postgres
 
-**Dependencies:** FastAPI core, Redis, SES/Postmark, Auth0 profiles
+**Dependencies:** FastAPI core, Redis, SES/Postmark, Supabase profiles
 
 **Technology Stack:** FastAPI, Celery worker, Jinja templating
 
@@ -438,7 +440,7 @@ components:
 - S3 evidence archive
 - Notification hooks for reviewer tasks
 
-**Dependencies:** TimescaleDB, Auth0 roles, Notification service
+**Dependencies:** Supabase Postgres (role metadata), Notification service
 
 **Technology Stack:** FastAPI, SQLAlchemy, Prefect for longer audits
 
@@ -460,7 +462,7 @@ graph LR
     NOTIFY[Notification Worker]
   end
   subgraph Data
-    DB[(TimescaleDB)]
+    DB[(Supabase Postgres)]
     S3[(S3 Artifacts)]
   end
   UI --> SL --> API
@@ -497,17 +499,18 @@ graph LR
 
 **Integration Notes:** Webhooks (invoice.paid, customer.subscription.updated) processed via FastAPI with signature verification and replay protection.
 
-### Auth0 Management API
-- **Purpose:** Synchronize profile metadata, role assignments, breached password notifications.
-- **Documentation:** https://auth0.com/docs/api/management/v2
-- **Base URL(s):** https://{tenant}.auth0.com/api/v2
-- **Authentication:** OAuth client credentials
-- **Rate Limits:** 2 requests/second base; batch writes when possible
+### Supabase Admin API
+- **Purpose:** Manage elevated user operations (invites, metadata sync, role promotion) and inspect auth audits.
+- **Documentation:** https://supabase.com/docs/reference/admin/introduction
+- **Base URL(s):** https://{project}.supabase.co
+- **Authentication:** Supabase service-role key (JWT)
+- **Rate Limits:** 500 requests/minute; coalesce metadata writes and prefer SQL policies for bulk changes
 
 **Key Endpoints Used:**
-- `PATCH /api/v2/users/{id}` – update role metadata
+- `POST /auth/v1/admin/users` – provision elevated reviewer/educator accounts
+- `PATCH /auth/v1/admin/users/{id}` – update `app_metadata.roles`
 
-**Integration Notes:** Cache management tokens, enforce least-privilege scopes, log Admin actions to ComplianceEvent.
+**Integration Notes:** Store the service-role key in AWS Secrets Manager, issue requests from FastAPI only, audit each mutation via the ComplianceEvent log.
 
 ## Core Workflows
 ```mermaid
@@ -518,7 +521,7 @@ sequenceDiagram
   participant API as FastAPI Core
   participant Q as Redis Streams
   participant W as Simulation Workers
-  participant DB as TimescaleDB
+  participant DB as Supabase Postgres
   participant N as Notification Service
   participant MD as Market Data API
   rect rgb(230,230,250)
@@ -744,7 +747,7 @@ export const useStrategyCanvas = create<CanvasState>()(
 - Separate server state (React Query) from local canvas edits (Zustand) to avoid cache churn.
 - Persist drafts locally to support offline tinkering; sync when validation is triggered.
 - Emit validation events via Zustand listeners to provide immediate UX feedback.
-- Mirror Auth0 role claims into store on login for consistent feature gating.
+- Mirror Supabase `app_metadata.roles` into store on login for consistent feature gating.
 
 ### Routing Architecture
 #### Route Organization
@@ -764,15 +767,19 @@ app/
 
 #### Protected Route Pattern
 ```typescript
-import { getSession } from '@auth0/nextjs-auth0';
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { redirect } from 'next/navigation';
 
 export async function withRoleGuard(route: string, requiredRoles: string[], next: () => Promise<JSX.Element>) {
-  const session = await getSession();
+  const supabase = createRouteHandlerClient({ cookies });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.user) {
     redirect(`/login?next=${route}`);
   }
-  const roles = session.user['https://blockbuilders.app/roles'] ?? [];
+  const roles = (session.user.app_metadata?.roles ?? []) as string[];
   if (!requiredRoles.some((role) => roles.includes(role))) {
     redirect('/403');
   }
@@ -784,14 +791,19 @@ export async function withRoleGuard(route: string, requiredRoles: string[], next
 #### API Client Setup
 ```typescript
 import ky from 'ky';
-import { getAccessToken } from '@auth0/nextjs-auth0';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { ApiError } from '@blockbuilders/shared/errors';
+
+const supabase = createClientComponentClient();
 
 export const apiClient = ky.create({
   prefixUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
   hooks: {
     beforeRequest: [async (request) => {
-      const { accessToken } = await getAccessToken();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
       if (accessToken) {
         request.headers.set('Authorization', `Bearer ${accessToken}`);
       }
@@ -867,7 +879,7 @@ async def create_strategy(payload: StrategyCreate,
 
 ### Database Architecture
 #### Schema Design
-See SQL DDL above. Migrations managed with Alembic, and Timescale retention policies compress raw metrics after 90 days while rolling up aggregates for dashboards.
+See SQL DDL above. Migrations managed with Alembic, and Supabase Timescale extension retention policies compress raw metrics after 90 days while rolling up aggregates for dashboards.
 
 #### Data Access Layer
 ```python
@@ -894,14 +906,14 @@ class StrategyRepository:
 sequenceDiagram
   participant U as User
   participant FE as Next.js App
-  participant Auth as Auth0
+  participant Supa as Supabase Auth
   participant API as FastAPI
-  participant DB as TimescaleDB
+  participant DB as Supabase Postgres
   U->>FE: Initiate login
-  FE->>Auth: Redirect to Auth0
-  Auth->>FE: Return ID + access tokens
+  FE->>Supa: Exchange credentials (PKCE / magic link)
+  Supa->>FE: Return session (access + refresh tokens)
   FE->>API: Invoke API with bearer token
-  API->>Auth: Verify via JWKS / introspection
+  API->>Supa: Fetch latest app_metadata (service role)
   API->>DB: Sync user + roles if first login
   API-->>FE: Respond with role-aware payload
 ```
@@ -922,9 +934,9 @@ async def get_current_user(token=Depends(auth_scheme), repo: UserRepository = De
     try:
         payload = jwt.decode(
             token.credentials,
-            settings.auth0_public_key,
-            audience=settings.auth0_audience,
-            algorithms=['RS256'],
+            settings.supabase_jwt_secret,
+            algorithms=['HS256'],
+            audience=settings.supabase_api_audience,
         )
     except jwt.JWTError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token') from exc
@@ -1003,8 +1015,8 @@ poetry run pytest apps/workers
 ```bash
 # Frontend (.env.local)
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_AUTH0_DOMAIN=your-tenant.auth0.com
-NEXT_PUBLIC_AUTH0_CLIENT_ID=...
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 NEXT_PUBLIC_STRIPE_PUBLIC_KEY=...
 
 # Backend (.env)
@@ -1012,9 +1024,10 @@ API_HOST=0.0.0.0
 API_PORT=8000
 DATABASE_URL=postgresql+asyncpg://blockbuilders:password@localhost:5432/blockbuilders
 REDIS_URL=redis://localhost:6379/0
-AUTH0_DOMAIN=your-tenant.auth0.com
-AUTH0_AUDIENCE=https://api.blockbuilders.app
-AUTH0_JWKS_URL=https://your-tenant.auth0.com/.well-known/jwks.json
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...
+SUPABASE_JWT_SECRET=...
+SUPABASE_API_AUDIENCE=authenticated
 STRIPE_SECRET_KEY=sk_test_...
 TIMESCALE_SSL_MODE=require
 S3_BUCKET=bb-artifacts-dev
@@ -1108,9 +1121,9 @@ jobs:
 - CORS locked to Vercel domains per environment with strict methods/headers.
 
 **Authentication:**
-- Short-lived access tokens, silent refresh via Auth0 rotating refresh tokens.
-- Session anomaly detection using Auth0 attack protection logs.
-- Password policy delegated to Auth0 (length ≥12, breached password checks).
+- Supabase access tokens limited to 60 minutes with silent refresh via auth helpers; store refresh tokens in HttpOnly cookies.
+- Stream Supabase `auth.audit_log_events` into Datadog for anomaly detection and alerting.
+- Enforce password and MFA policies through Supabase (min length ≥12, breached password checks, email domain allowlist).
 
 ### Performance Optimization
 **Frontend:**

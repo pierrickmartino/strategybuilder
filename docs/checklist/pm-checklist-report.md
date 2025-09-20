@@ -1,48 +1,51 @@
 # PM Checklist Review – Blockbuilders (2025-09-20)
 
 ## Executive Summary
-- Overall completeness estimated at **~85%**; documentation demonstrates strong alignment across goals, requirements, and epics but several gaps prevent final approval.
-- MVP scope remains **"Just Right"** thanks to clear core/out-of-scope delineation, yet stakeholder readiness is undermined by outstanding research placeholders and conflicting identity provider choices.
-- Architecture readiness is **"Nearly Ready"** pending resolution of the auth-provider mismatch and formal logging of the PM checklist results.
-- Critical next actions: reconcile Supabase vs Auth0 guidance, replace TBD market-sizing reference with live data, capture completed research inputs, and expand UX flows for key journeys.
+- Documentation completeness is roughly **70%**: strong functional coverage, but critical cross-functional and validation gaps remain.
+- MVP scope is currently **Too Large**; requires trimming or phased release before entering build.
+- Readiness for architecture is **Nearly Ready**, contingent on documenting technical/cross-functional guidance and MVP validation plan.
+- Most urgent issues: absent data/integration/ops requirements, undefined MVP validation approach, and pending user research evidence.
 
 ## Category Analysis
 
 | Category | Status | Critical Issues |
 | --- | --- | --- |
-| 1. Problem Definition & Context | PARTIAL | Market-sizing reference still TBD and research evidence remains prospective (`docs/brief.md:138-140`). |
-| 2. MVP Scope Definition | PASS | — |
-| 3. User Experience Requirements | PARTIAL | PRD enumerates key screens but lacks end-to-end flow and edge-case coverage for onboarding/backtesting (`docs/prd.md:55-70`). |
+| 1. Problem Definition & Context | PARTIAL | Research evidence and quantified impact still pending (`docs/brief.md:132-147`). |
+| 2. MVP Scope Definition | PARTIAL | No out-of-scope list or validation strategy captured in PRD (`docs/prd.md:20-245`). |
+| 3. User Experience Requirements | PARTIAL | UX section lists paradigms but lacks full flows, error states, accessibility checkpoints (`docs/prd.md:43-170`). |
 | 4. Functional Requirements | PASS | — |
 | 5. Non-Functional Requirements | PASS | — |
 | 6. Epic & Story Structure | PASS | — |
-| 7. Technical Guidance | PARTIAL | Auth provider conflict (Supabase vs Auth0) introduces cross-document drift (`docs/prd.md:84-89`). |
-| 8. Cross-Functional Requirements | PARTIAL | Data retention/support expectations not articulated; integration details high-level only (`docs/prd.md:84-96`). |
-| 9. Clarity & Communication | PARTIAL | Brief still marked "Draft v0.1" and PM checklist results not appended (`docs/brief.md:3`, `docs/prd.md:246`). |
+| 7. Technical Guidance | FAIL | No platform constraints, technical feasibility notes, or integration architecture (`docs/prd.md:246-255`). |
+| 8. Cross-Functional Requirements | FAIL | Data entities, integrations, and operational expectations absent (`docs/prd.md:20-245`). |
+| 9. Clarity & Communication | PASS | — |
 
 ## Top Issues by Priority
-
-- **BLOCKER** – Resolve identity-provider conflict: PRD specifies Supabase authentication while architecture and strategy rely on Auth0. Pick one stack (or justify dual usage) and update both documents with rationale and change-log entries (`docs/prd.md:84-89`, `docs/architecture.md:18-70`).
-- **HIGH** – Replace TBD research artifacts: supply the market-sizing spreadsheet link or remove until available; document any completed research synthesis to avoid perception of missing inputs (`docs/brief.md:125-140`).
-- **HIGH** – Enrich user research evidence: personas reference planned interviews but lack summarized findings; add insights or flag as an explicit follow-up with owner/date.
-- **MEDIUM** – Extend UX flow coverage: capture critical path steps, decision points, and edge cases for onboarding → first backtest and template iteration flows to guide development (`docs/prd.md:55-70`).
-- **MEDIUM** – Define operational guardrails: add data retention/support expectations plus integration validation plans for market data, billing, and notifications (`docs/prd.md:84-96`).
+- **BLOCKER** – Document cross-functional requirements: capture data schema/retention, integration touchpoints (market data, Stripe, notifications), and operational guardrails so downstream teams have scope (`docs/prd.md:20-245`).
+- **HIGH** – Define MVP boundaries and validation plan: add explicit out-of-scope items, future phases, and MVP success/feedback loops tied to KPIs (`docs/prd.md:20-245`).
+- **HIGH** – Provide user research evidence or flag as open action with owners/dates to prevent assumptions from hardening (`docs/brief.md:132-147`).
+- **MEDIUM** – Expand UX requirements with primary flows, decision points, edge cases, and accessibility acceptance criteria to guide design/dev (`docs/prd.md:43-170`).
+- **MEDIUM** – Integrate key business metrics from the brief into the PRD for single-source traceability and future measurement alignment (`docs/prd.md:5-10`, `docs/brief.md:30-45`).
 
 ## MVP Scope Assessment
-- Current must-haves align with the core problem; comparison exports could be deferred if timelines tighten, provided learning goals are preserved.
-- Ensure MVP success criteria tie to measurable baselines (e.g., current activation rates) so future validation is rigorous.
-- Complexity appears manageable, but confirm that template comparison features do not overreach MVP bandwidth.
+- **Trim candidates:** educator/cohort monitoring tools, advanced insight engine, premium entitlement workflows—defer to post-MVP to protect timeline (`docs/prd.md:161-245`).
+- **Missing essentials:** onboarding telemetry and version rollback requirements implied but not scoped; ensure baseline coverage before cut decisions (`docs/prd.md:22-31`).
+- **Complexity:** four epics with rich acceptance criteria exceed the 16-week beta unless staged; consider sequencing by learning impact (`docs/brief.md:30-34`).
+- **Timeline risk:** Without an articulated validation plan and scoped feedback loops, learning milestones could slip, jeopardizing beta goals.
 
 ## Technical Readiness
-- Clarify identity provider, billing stack, and hosting split to maintain alignment with architecture; document rationale in change logs once settled.
-- Flag pending data-governance tasks (retention, backups, compliance logs) for architect follow-up.
-- Highlight any areas requiring technical spikes (e.g., market data vendor selection, quota enforcement) so architecture can plan investigation.
+- No documented technical constraints, integration architecture, or feasibility notes; architects lack guidance beyond the prompt (`docs/prd.md:246-255`).
+- Risks include unconfirmed market data vendors, compliance automation, Stripe integration, and cost guardrails (`docs/brief.md:144-146`, `docs/prd.md:137-170`).
+- Recommend enumerating areas needing technical investigation (simulation worker scaling, entitlement enforcement, observability stack) before architect kickoff.
 
 ## Recommendations & Next Steps
-1. Align PRD and architecture on auth, billing, and infrastructure selections; update change logs after reconciliation.
-2. Publish or link finalized market sizing and early research outputs; if still pending, identify owners and due dates in both brief and PRD.
-3. Add detailed user flows (onboarding to first backtest, template clone to comparison) with edge cases and decision points.
-4. Document data retention, support expectations, and integration testing approach within the PRD to close cross-functional gaps.
-5. Once updates land, rerun the PM checklist and log results inside `docs/prd.md:246` to mark formal sign-off readiness.
+1. Add cross-functional requirements section covering data, integrations, ops/support, and monitoring expectations.
+2. Define MVP boundaries, future enhancements, and validation/feedback plan tied to success metrics.
+3. Capture current user research findings or explicitly document pending research with owners/dates.
+4. Extend UX section with canonical flows, edge cases, and accessibility checkpoints; link to forthcoming UX artifacts.
+5. Fold key business metrics from the brief into the PRD and update the checklist results section once gaps are addressed.
+
+## Final Decision
+**NEEDS REFINEMENT** – Address blockers before handing off to architecture.
 
 *Prepared by John (Product Manager) on 2025-09-20.*

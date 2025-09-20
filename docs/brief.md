@@ -1,6 +1,6 @@
 # Project Brief: Blockbuilders
 
-> Owner: **Business Analyst (Mary)** • Status: **Draft v0.1** • Date: 2025-09-19
+> Owner: **Business Analyst (Mary)** • Status: **To be review v1.0** • Date: 2025-09-19
 
 ---
 
@@ -137,7 +137,6 @@ Founders emphasize educational guardrails, community-led growth, and ensuring th
 
 ### C. References
 - Founders’ discovery notes (Sept 2025)
-- Market sizing spreadsheet (TBD link)
 - Compliance advisor memo outline (scheduled)
 
 ## Next Steps
