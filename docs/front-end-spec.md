@@ -1,0 +1,245 @@
+# Blockbuilders UI/UX Specification
+
+## Introduction
+This document defines the user experience goals, information architecture, user flows, and visual design specifications for Blockbuilders's user interface. It serves as the foundation for visual design and frontend development, ensuring a cohesive and user-centered experience.
+
+## Overall UX Goals & Principles
+### Target User Personas
+**Curious Builder:** Self-directed retail trader exploring systematic strategies without coding expertise; values guardrails and quick wins to build confidence.
+
+**Power Tinkerer:** Data-savvy hobbyist iterating on complex indicators; prioritizes freedom to experiment, deep metrics, and low-friction comparisons.
+
+**Community Educator:** Content creator or cohort leader sharing strategies; needs scalable template management, attribution, and trust cues for learners.
+
+### Usability Goals
+- First meaningful backtest completed within 15 minutes via guided onboarding and starter templates.
+- Strategy canvas supports drag-and-drop editing with inline validation to reduce configuration errors by >50%.
+- Comparison dashboards surface actionable insights (KPIs, anomaly flags) in one glance to help users choose the right iteration.
+
+### Design Principles
+1. Progressive guidance – Start simple with templates and tooltips, then reveal depth as confidence grows.
+2. Trust through transparency – Visualize data lineage, assumptions, and compliance messaging alongside results.
+3. Confident lab aesthetic – Blend approachability with professional cues so experimentation feels safe yet credible.
+4. Accessible by default – WCAG AA color, motion, and control standards baked into every view.
+5. Continuous feedback loops – Every action (drag, validate, run) responds instantly with status and next-best steps.
+
+### Change Log
+| Date | Version | Description | Author |
+| --- | --- | --- | --- |
+| 2025-09-20 | v0.1 | Initial UI/UX spec draft | Sally (UX Expert) |
+
+## Information Architecture (IA)
+### Site Map / Screen Inventory
+```mermaid
+graph TD
+    Welcome[Guided Welcome] --> OnboardingChecklist[Onboarding Checklist]
+    OnboardingChecklist --> Canvas[Strategy Canvas]
+    Canvas --> BlockLibrary[Block Library]
+    Canvas --> BlockConfig[Block Configuration Panel]
+    Canvas --> ValidationCenter[Inline Validation]
+    Canvas --> BacktestLaunch[Backtest Launch]
+    BacktestLaunch --> ResultsDashboard[Backtest Results Dashboard]
+    ResultsDashboard --> ComparisonHub[Comparison Dashboard]
+    ResultsDashboard --> InsightEngine[Insight Engine]
+    Canvas --> Templates[Starter Templates]
+    Welcome --> EducationHub[Education Hub]
+    Welcome --> Notifications[Notification Center]
+    ComparisonHub --> AnomalyAlerts[Anomaly Alerts]
+    Notifications --> PaperTrading[Paper Trading Scheduler]
+    PaperTrading --> PerformanceDash[Performance Dashboard]
+    PerformanceDash --> AlertSettings[Alert Settings]
+    PerformanceDash --> CohortMonitoring[Cohort Monitoring]
+    CohortMonitoring --> Reports[Exportable Reports]
+    AdminConsole[Admin Console] --> PlanSettings[Plan & Billing]
+    AdminConsole --> DataConnectors[Data Connectors]
+    AdminConsole --> ComplianceToolkit[Compliance Toolkit]
+```
+
+### Navigation Structure
+**Primary Navigation:** Strategic funnel from "Build" (canvas, templates) to "Validate" (backtests, paper trading) to "Compare" (dashboards) to "Manage" (community and admin tools).
+
+**Secondary Navigation:** Contextual tabs for strategy versions, result breakdowns, and educator cohorts; persistent access to notifications and education center.
+
+**Breadcrumb Strategy:** Display within admin operations and educator consoles to clarify depth (e.g., Admin Console > Compliance Toolkit > Disclosures).
+
+## User Flows
+### Flow: Onboard to First Backtest
+- Goal: Lead first-time users from signup to successful backtest within 15 minutes.
+- Diagram:
+```mermaid
+flowchart TD
+    A[Signup] --> B[Welcome Modal]
+    B --> C[Onboarding Checklist]
+    C --> D[Choose Starter Template]
+    D --> E[Preview Strategy Canvas]
+    E --> F[Inline Validation]
+    F --> G[Configure Key Parameters]
+    G --> H[Run Backtest]
+    H --> I[Results Summary]
+    I --> J[Next Best Action Suggestions]
+```
+- Edge Cases: Missing data connectors prompts; validation errors require inline guidance; free-tier limit messaging appears before run.
+- Success Metrics: Backtest completion rate, time to backtest, checklist completion.
+
+### Flow: Iterating on Strategy Blocks
+- Goal: Empower power users to tweak indicators and logic quickly.
+- Diagram:
+```mermaid
+flowchart TD
+    A[Open Saved Strategy] --> B[Highlight Active Version]
+    B --> C[Duplicate Version]
+    C --> D[Adjust Block Parameters]
+    D --> E[Inline Validation Checks]
+    E --> F[Preview Impact]
+    F --> G[Run Backtest]
+    G --> H[Compare to Baseline]
+    H --> I[Save with Notes]
+```
+- Edge Cases: Validation fails; backtest quota exceeded; version naming conflicts.
+- Success Metrics: Time to iteration, reduction in validation errors, usage of comparison hub.
+
+### Flow: Community Template Sharing
+- Goal: Allow educators to publish templates with compliance checks and analytics.
+- Diagram:
+```mermaid
+flowchart TD
+    A[Create Strategy] --> B[Add Metadata]
+    B --> C[Compliance Checklist]
+    C --> D[Publish Template]
+    D --> E[Set Permissions]
+    E --> F[Learner Clones Template]
+    F --> G[Educator Dashboard Metrics]
+    G --> H[Alerts for Anomalies]
+```
+- Edge Cases: Pending compliance review, takedown requests, learner over quota.
+- Success Metrics: Template adoption rate, compliance approval time, cohort engagement.
+
+## Component Inventory
+### Strategy Canvas Components
+- Canvas Grid
+- Block Nodes (Data Source, Indicator, Signal Logic, Risk Control, Execution)
+- Connectors with Validation Badges
+- Version Switcher
+- Inline Tooltips
+
+### Configuration Components
+- Side Panel Form with Tabs (Parameters, Data Assumptions, Risk Controls)
+- Live Preview
+- Validation Summary
+
+### Results & Insights Components
+- KPI Summary Cards
+- Equity Curve Charts
+- Trade Log Tables
+- Anomaly Flags
+- Insight Recommendations
+- Comparison Matrix
+
+### Notifications & Monitoring Components
+- Notification Center with Filters
+- Scheduler Wizard
+- Alert Threshold Controls
+- Cohort Performance Cards
+
+## Visual Language
+### Color Palette
+- Primary: Midnight blue (#14213d) for lab-like trust.
+- Secondary: Electric teal (#00c6b8) for interactive highlights.
+- Accent: Solar yellow (#fca311) for status cues.
+- Neutrals: Slate gray scale (#1f2933 to #e4e7eb) to keep focus on data.
+- Alerts: Success #2dd881, Warning #ffb703, Error #ef233c.
+
+### Typography
+| Type Token | Font Size | Weight | Line Height |
+| --- | --- | --- | --- |
+| H1 | 36px | 600 | 44px |
+| H2 | 28px | 600 | 36px |
+| H3 | 22px | 500 | 32px |
+| Body | 16px | 400 | 24px |
+| Small | 14px | 400 | 20px |
+
+### Iconography
+**Icon Library:** Phosphor Icons set for consistent, rounded geometry.
+
+**Usage Guidelines:** Pair icons with labels for clarity; stick to outlined style at 20px baseline, fill only for alerts; ensure accessible contrast.
+
+### Spacing & Layout
+**Grid System:** 12-column responsive grid with 24px gutters (desktop), 16px (tablet), 8px (mobile).
+
+**Spacing Scale:** 4-8-12-16-24-32-48px increments; use 12px multiples for canvas connections; maintain 32px breathing room around charts.
+
+## Accessibility Requirements
+**Standard:** WCAG 2.1 AA
+
+**Visual:**
+- Color contrast ratios: Minimum 4.5:1 for text, 3:1 for graphical components.
+- Focus indicators: 2px high-contrast outline with offset.
+- Text sizing: Support browser zoom to 200% without loss of content.
+
+**Interaction:**
+- Keyboard navigation: Full keyboard traversal across canvas, with shortcuts for block selection.
+- Screen reader support: Aria labels for block types, strategy status, and results summaries.
+- Touch targets: Minimum 44x44dp for interactive elements.
+
+**Content:**
+- Alternative text: Provide descriptive alt text for charts via data summaries.
+- Heading structure: Semantic headings for dashboards and modals.
+- Form labels: Persistent labels with contextual hints, no placeholder-only forms.
+
+### Testing Strategy
+Integrate Axe automated scans, manual keyboard walkthroughs each release, and periodic usability testing with screen reader users.
+
+## Responsiveness Strategy
+### Breakpoints
+| Breakpoint | Min Width | Max Width | Target Devices |
+| --- | --- | --- | --- |
+| Mobile | 320px | 599px | iPhone SE+, Pixel |
+| Tablet | 600px | 1023px | iPad, Galaxy Tab |
+| Desktop | 1024px | 1439px | MacBook Air, Surface |
+| Wide | 1440px | - | Pro monitors, ultrawide labs |
+
+### Adaptation Patterns
+**Layout Changes:** Collapse side panels into drawers on tablet/mobile; stack dashboards vertically with sticky KPI summaries.
+
+**Navigation Changes:** Hamburger for primary nav on mobile; persistent bottom sheet for run status.
+
+**Content Priority:** Prioritize actionable metrics (KPIs, warnings) over dense charts; lazy-load secondary data on mobile.
+
+**Interaction Changes:** Canvas pinch-zoom on touch; ensure drag handles have larger hit areas.
+
+## Animation & Micro-interactions
+### Motion Principles
+Subtle, purposeful motion under 250ms; ease-out curves for entrance, ease-in for exits; reduce motion setting disables non-essential animations.
+
+### Key Animations
+- **Block Snap Feedback:** Node snaps into place with 180ms ease-out bounce to confirm connection.
+- **Validation Badge Pulse:** Badge gently pulses (120ms) when an error appears; stops after acknowledgement.
+- **Backtest Run Progress:** Progress bar transitions with gradient sweep to convey live processing (max 30s).
+- **Notification Toast Reveal:** Slide-in from top-right with fade, dismisses in 5s unless hovered.
+
+## Performance Considerations
+### Performance Goals
+- **Page Load:** Time-to-interactive under 2 seconds on broadband.
+- **Interaction Response:** UI actions under 100ms feedback.
+- **Animation FPS:** Maintain 60 FPS for canvas and charts.
+
+### Design Strategies
+Use skeleton loaders, virtualized lists for logs, defer heavy charts off-screen, and leverage gradient placeholders to communicate loading; prioritize above-the-fold resources.
+
+## Next Steps
+### Immediate Actions
+1. Review spec with PM/Engineering for alignment.
+2. Translate flows into Figma wireframes and interactive prototypes.
+3. Set up design tokens in codebase aligned to palette/typography.
+4. Schedule accessibility audit once initial implementation is ready.
+
+### Design Handoff Checklist
+- [x] All user flows documented
+- [x] Component inventory complete
+- [x] Accessibility requirements defined
+- [x] Responsive strategy clear
+- [x] Brand guidelines incorporated
+- [x] Performance goals established
+
+## Checklist Results
+UI/UX checklist pending; run during design review cadence.
