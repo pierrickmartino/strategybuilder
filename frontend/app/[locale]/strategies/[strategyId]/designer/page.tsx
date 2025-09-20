@@ -21,24 +21,24 @@ export default async function StrategyDesignerPage({ params }: StrategyDesignerP
   const strategy = dictionary.strategies.demoStrategies.find((item) => `${item.id}` === strategyId);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-12 text-slate-100">
-      <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold">{dictionary.designer.heading}</h1>
-            <p className="text-sm text-slate-400">{dictionary.designer.description}</p>
-          </div>
-          <Link
-            href={`/${locale}/strategies`}
-            className="text-sm text-sky-400 transition hover:text-sky-300"
-          >
-            {dictionary.designer.backAction}
-          </Link>
-        </header>
-        <div className="space-y-3">
-          <p className="text-sm text-slate-400">
-            {strategy?.name ?? dictionary.designer.untitled}
-          </p>
+    <main className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-800 px-8 py-6">
+        <div>
+          <h1 className="text-3xl font-semibold">{dictionary.designer.heading}</h1>
+          <p className="text-sm text-slate-400">{dictionary.designer.description}</p>
+        </div>
+        <Link
+          href={`/${locale}/strategies`}
+          className="text-sm text-sky-400 transition hover:text-sky-300"
+        >
+          {dictionary.designer.backAction}
+        </Link>
+      </header>
+      <section className="flex flex-1 min-h-0 flex-col gap-4 px-8 py-6">
+        <p className="text-sm text-slate-400">
+          {strategy?.name ?? dictionary.designer.untitled}
+        </p>
+        <div className="flex flex-1 min-h-0">
           <DesignerCanvas strategyName={strategy?.name ?? dictionary.designer.untitled} />
         </div>
       </section>
