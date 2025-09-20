@@ -28,8 +28,8 @@ export default function DesignerCanvas({ strategyName }: DesignerCanvasProps) {
   );
 
   return (
-    <div className="h-[540px] overflow-hidden rounded-xl border border-slate-800 bg-slate-950/60">
-      <ReactFlow nodes={nodes} edges={edges} fitView>
+    <div className="flex h-full w-full flex-1 min-h-[420px] overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60">
+      <ReactFlow nodes={nodes} edges={edges} fitView style={{ width: "100%", height: "100%" }}>
         <Background className="!bg-transparent" />
         <Controls className="!border-0 !bg-slate-900/80" />
       </ReactFlow>
