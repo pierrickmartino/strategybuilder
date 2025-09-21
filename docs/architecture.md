@@ -11,13 +11,14 @@ N/A – greenfield project. We intentionally assemble a Turborepo monorepo combi
 ### Change Log
 | Date | Version | Description | Author |
 | --- | --- | --- | --- |
+| 2025-09-21 | v0.3 | Synced with PRD v1.4 & UI spec v0.2: added plan guardrails, notification center, and responsive/accessibility guidance | Winston (Architect) |
 | 2025-09-21 | v0.2 | Supabase adoption for auth and managed Postgres | Codex (AI) |
 | 2025-09-20 | v0.1 | Initial fullstack architecture synthesized from PRD + UI spec | Winston (Architect) |
 
 ## High Level Architecture
 
 ### Technical Summary
-Blockbuilders adopts a composable hybrid: the user experience is delivered by Next.js 15 on Vercel Edge, while a containerized FastAPI core on AWS Fargate exposes REST APIs, orchestrates simulations, and enforces compliance. Long-running backtests and paper-trading loops execute asynchronously through Celery workers on AWS Batch backed by Redis Streams and Supabase Postgres hypertables (Timescale extension). Supabase supplies managed Postgres, row-level security, and JWT-based auth that both frontend guards (Zustand + middleware) and backend policy checks consume. Object storage in S3 retains strategy exports, audit packages, and simulation artifacts (with Supabase Storage handling avatars and lightweight uploads), and Datadog/Sentry instrumentation spans every component so anomalies surface within the five-minute NFR window. This architecture keeps first-win onboarding fast, makes results trustworthy, and scales into community sharing without sacrificing governance.
+Blockbuilders adopts a composable hybrid: the user experience is delivered by Next.js 15 on Vercel Edge, while a containerized FastAPI core on AWS Fargate exposes REST APIs, orchestrates simulations, and enforces compliance. Long-running backtests and paper-trading loops execute asynchronously through Celery workers on AWS Batch backed by Redis Streams and Supabase Postgres hypertables (Timescale extension). Supabase supplies managed Postgres, row-level security, and JWT-based auth that both frontend guards (Zustand + middleware) and backend policy checks consume. Object storage in S3 retains strategy exports, audit packages, and simulation artifacts (with Supabase Storage handling avatars and lightweight uploads), and Datadog/Sentry instrumentation spans every component so anomalies surface within the five-minute NFR window. Plan guardrails surface consistently across tiers through shared quota services, while the notification center, compliance disclosures, and mobile read-only dashboards consume the same APIs to honor the refreshed UX specification. This architecture keeps first-win onboarding fast, makes results trustworthy, and scales into community sharing without sacrificing governance or accessibility.
 
 ### Platform and Infrastructure Choice
 **Option A – Vercel + Supabase + AWS workers (recommended):** Keeps Next.js on Vercel Edge while delegating auth, managed Postgres (Timescale + pgvector extensions), and lightweight storage to Supabase. AWS Fargate/Batch continue powering FastAPI and simulation workloads with minimal infrastructure drift.
@@ -306,6 +307,68 @@ export interface ComplianceEvent {
 - Generates Notification alerts to stakeholders
 - Mirrors evidence to S3 for regulator-ready archives
 
+### Notification
+**Purpose:** Central store for in-app, email, and webhook notifications that power the unified notification center.
+
+**Key Attributes:**
+- id: UUID – Primary key
+- user_id: UUID – Recipient
+- type: enum – backtest_complete, paper_trade_alert, governance_task, system
+- payload: jsonb – Structured metadata (e.g., run IDs, anomaly details)
+- channel: enum – in_app, email, webhook
+- read_at: Date – Null until acknowledged
+- created_at: Date – Delivery timestamp
+
+#### TypeScript Interface
+```typescript
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'backtest_complete' | 'paper_trade_alert' | 'governance_task' | 'system';
+  payload: Record<string, unknown>;
+  channel: 'in_app' | 'email' | 'webhook';
+  readAt: string | null;
+  createdAt: string;
+}
+```
+
+#### Relationships
+- Belongs to User
+- References BacktestRun, PaperTradeRun, or ComplianceEvent via payload metadata
+- Drives unread counters for notification center and toasts
+
+### PlanUsage
+**Purpose:** Tracks daily quota consumption for backtests, paper trades, and template publishes to enforce plan guardrails.
+
+**Key Attributes:**
+- id: UUID – Primary key
+- user_id: UUID – Associated account
+- metric: enum – backtests, paper_trades, template_publishes
+- window_start: Date – Beginning of quota window (daily/weekly)
+- window_end: Date – End of quota window
+- used: int – Units consumed
+- limit: int – Plan cap snapshot
+- updated_at: Date – Last refresh
+
+#### TypeScript Interface
+```typescript
+export interface PlanUsage {
+  id: string;
+  userId: string;
+  metric: 'backtests' | 'paper_trades' | 'template_publishes';
+  windowStart: string;
+  windowEnd: string;
+  used: number;
+  limit: number;
+  updatedAt: string;
+}
+```
+
+#### Relationships
+- Belongs to User
+- Hydrated from SubscriptionPlan quota JSONB and worker events
+- Queried before simulation actions to gate free-tier boundaries per PRD v1.4
+
 ## API Specification
 Assumes RESTful JSON endpoints under `/api/v1` generated from FastAPI OpenAPI.
 
@@ -529,13 +592,19 @@ sequenceDiagram
     FE->>API: POST /strategies (select template)
     API->>DB: Persist strategy + first version
     FE->>API: POST /backtests
-    API->>Q: Publish simulation job
-    Q->>W: Deliver payload
-    W->>MD: Fetch candles
-    W->>DB: Write metrics + trade log
-    W->>N: Emit completion event
-    N->>FE: WebSocket toast + badge update
-    N->>U: Email summary
+    API->>DB: Check plan usage + quotas
+    alt Quota exceeded
+      API-->>FE: 403 quota_exceeded (upgrade CTA)
+    else Within quota
+      API->>Q: Publish simulation job
+      Q->>W: Deliver payload
+      W->>MD: Fetch candles
+      W->>DB: Write metrics + trade log
+      W->>N: Emit completion event
+      N->>FE: WebSocket toast + badge update
+      FE->>FE: Update notification center unread count
+      N->>U: Email summary
+    end
   end
   rect rgb(220,245,220)
     FE->>API: POST /paper-trades (schedule)
@@ -582,6 +651,19 @@ CREATE TABLE subscription_plans (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE plan_usage (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  metric TEXT NOT NULL,
+  window_start TIMESTAMPTZ NOT NULL,
+  window_end TIMESTAMPTZ NOT NULL,
+  used INTEGER NOT NULL DEFAULT 0,
+  plan_limit INTEGER NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id, metric, window_start)
+);
+CREATE INDEX plan_usage_lookup_idx ON plan_usage (user_id, metric, window_start DESC);
 
 CREATE TABLE strategies (
   id UUID PRIMARY KEY,
@@ -630,6 +712,17 @@ CREATE TABLE paper_trade_runs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  channel TEXT NOT NULL,
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX notifications_unread_idx ON notifications (user_id) WHERE read_at IS NULL;
+
 CREATE TABLE template_shares (
   id UUID PRIMARY KEY,
   strategy_version_id UUID REFERENCES strategy_versions(id) ON DELETE CASCADE,
@@ -667,11 +760,18 @@ apps/web/src/
 │       ├── dashboard/
 │       ├── strategies/[strategyId]/
 │       ├── templates/
+│       ├── notifications/
+│       ├── paper-trading/
+│       ├── account/plan/
 │       └── educator/
 ├── components/
 │   ├── canvas/
 │   ├── analytics/
 │   ├── onboarding/
+│   ├── notifications/
+│   ├── paper-trading/
+│   ├── billing/
+│   ├── compliance/
 │   └── primitives/
 ├── hooks/
 ├── services/
@@ -711,6 +811,14 @@ export const StrategyCanvas = memo(function StrategyCanvas({ strategyId, version
 });
 ```
 
+### Feature Modules
+- **Onboarding & Education Hub:** Guided checklist, starter templates, and contextual education tiles that mirror the UX spec's progressive disclosure cues.
+- **Strategy Canvas & Validation:** Drag-and-drop canvas, inline validation badges, and comparison table surfaces tied to shared Zustand stores.
+- **Results & Insight Dashboards:** Backtest summaries, comparison hub, anomaly inspector, and insight engine panels with shared data loaders.
+- **Paper Trading Scheduler & Alert Center:** Scheduling wizard, alert thresholds, notification inbox, and acknowledgement flows introduced in UI spec v0.2.
+- **Plan & Billing Guardrails:** Plan usage banner, upgrade modals, and quota tooltips that surface before heavy actions to reinforce freemium boundaries.
+- **Compliance & Disclosure Surfaces:** Disclosure banners, compliance checklists, and educator governance panes to keep messaging consistent across flows.
+
 ### State Management Architecture
 #### State Structure
 ```typescript
@@ -748,6 +856,8 @@ export const useStrategyCanvas = create<CanvasState>()(
 - Persist drafts locally to support offline tinkering; sync when validation is triggered.
 - Emit validation events via Zustand listeners to provide immediate UX feedback.
 - Mirror Supabase `app_metadata.roles` into store on login for consistent feature gating.
+- Hydrate plan quotas and usage counters from React Query selectors so quota modals render before API calls.
+- Maintain notification inbox state (unread counts, acknowledgements) independently to keep toasts and the notification center in sync.
 
 ### Routing Architecture
 #### Route Organization
@@ -761,6 +871,9 @@ app/
 ├── (dashboard)/strategies/page.tsx
 ├── (dashboard)/strategies/[strategyId]/page.tsx
 ├── (dashboard)/templates/page.tsx
+├── (dashboard)/notifications/page.tsx
+├── (dashboard)/paper-trading/page.tsx
+├── (dashboard)/account/plan/page.tsx
 ├── (dashboard)/educator/page.tsx
 └── api/notifications/route.ts
 ```
@@ -829,6 +942,30 @@ export async function createStrategy(input: StrategyInput): Promise<Strategy> {
 }
 ```
 
+#### Guard Example
+```typescript
+import { useQueryClient } from '@tanstack/react-query';
+import { ApiError } from '@blockbuilders/shared/errors';
+import { PlanUsage } from '@blockbuilders/shared/types';
+
+export function assertBacktestQuota(queryClient: ReturnType<typeof useQueryClient>) {
+  const usage = queryClient.getQueryData<PlanUsage>(['planUsage', 'backtests']);
+  if (!usage) return;
+  if (usage.used >= usage.limit) {
+    throw new ApiError('quota_exceeded', 'Upgrade to unlock more backtests today.', {
+      metric: 'backtests',
+      limit: usage.limit,
+    });
+  }
+}
+```
+
+### Responsive & Accessibility Strategy
+- Breakpoints mirror the UX spec: mobile (≤599px) surfaces read-only strategy cards, alert acknowledgements, and upgrade CTAs; tablet (600–1023px) unlocks simplified canvas editing; desktop and wide retain full drag-and-drop plus analytics panes.
+- Side panels collapse into drawers on tablet/mobile, dashboards stack vertically with sticky KPI summaries, and notification toasts funnel into the persistent notification center entry point.
+- High-contrast 2px focus rings, semantic headings, and chart summaries keep interfaces aligned with WCAG 2.1 AA, matching the front-end spec's accessibility guardrails.
+- Canvas blocks expose ARIA labels, validation badges emit polite live-region updates, and animations respect `prefers-reduced-motion` to support inclusive UX.
+
 ## Backend Architecture
 
 ### Service Architecture
@@ -849,6 +986,7 @@ apps/api/src/
 │   │   ├── paper_trades.py
 │   │   ├── templates.py
 │   │   ├── notifications.py
+│   │   ├── plan_usage.py
 │   │   └── admin/compliance.py
 ├── services/
 ├── repositories/
@@ -898,6 +1036,23 @@ class StrategyRepository:
             stmt = stmt.where(StrategyModel.owner_id == owner_id)
         result = await self.session.execute(stmt)
         return [StrategyResponse.model_validate(row) for row in result.scalars()]
+```
+
+### Quota Enforcement Service
+```python
+from datetime import datetime, timezone
+from app.repositories.plan_usage_repository import PlanUsageRepository
+from app.schemas.errors import QuotaExceededError
+
+class PlanUsageService:
+    def __init__(self, repo: PlanUsageRepository):
+        self.repo = repo
+
+    async def assert_within_quota(self, user_id: str, metric: str) -> None:
+        usage = await self.repo.get_active_window(user_id=user_id, metric=metric)
+        if usage.used >= usage.limit:
+            raise QuotaExceededError(metric=metric, limit=usage.limit)
+        await self.repo.increment(user_id=user_id, metric=metric, at=datetime.now(timezone.utc))
 ```
 
 ### Authentication and Authorization
@@ -1152,9 +1307,11 @@ Frontend Unit  Backend Unit
 ```text
 apps/web/tests/
 ├── unit/
-│   └── components/StrategyCanvas.test.tsx
+│   ├── components/StrategyCanvas.test.tsx
+│   └── components/NotificationCenter.test.tsx
 ├── integration/
-│   └── flows/onboard-to-backtest.test.tsx
+│   ├── flows/onboard-to-backtest.test.tsx
+│   └── flows/paper-trading-scheduler.test.tsx
 └── utils/test-utils.ts
 ```
 
@@ -1162,6 +1319,7 @@ apps/web/tests/
 ```text
 apps/api/tests/
 ├── unit/test_strategy_service.py
+├── unit/test_plan_usage_service.py
 ├── integration/test_backtest_flow.py
 └── fixtures/mock_market_data.py
 ```
@@ -1171,6 +1329,7 @@ apps/api/tests/
 tests/e2e/
 ├── onboarding.spec.ts
 ├── backtest-run.spec.ts
+├── plan-guardrails.spec.ts
 └── educator-sharing.spec.ts
 ```
 
@@ -1214,14 +1373,19 @@ async def test_create_strategy(async_client: AsyncClient, auth_header):
 ```typescript
 import { test, expect } from '@playwright/test';
 
-test('builder completes first backtest within guided flow', async ({ page }) => {
+test('free-tier user hits backtest quota and sees upgrade CTA', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: /get started/i }).click();
-  await page.getByLabel('Email').fill('builder@example.com');
+  await page.getByLabel('Email').fill('free-builder@example.com');
   await page.getByRole('button', { name: /sign in/i }).click();
   await page.getByRole('button', { name: /start with template/i }).click();
+  for (let i = 0; i < 3; i += 1) {
+    await page.getByRole('button', { name: /run backtest/i }).click();
+    await expect(page.getByText(/backtest queued/i)).toBeVisible({ timeout: 5000 });
+    await page.getByRole('button', { name: /close/i }).click();
+  }
   await page.getByRole('button', { name: /run backtest/i }).click();
-  await expect(page.getByText(/backtest queued/i)).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText(/upgrade to unlock more backtests/i)).toBeVisible();
 });
 ```
 

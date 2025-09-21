@@ -5,16 +5,17 @@ This document defines the user experience goals, information architecture, user 
 
 ## Overall UX Goals & Principles
 ### Target User Personas
-**Curious Builder:** Self-directed retail trader exploring systematic strategies without coding expertise; values guardrails and quick wins to build confidence.
+**Retail Crypto Tinkerer (Primary):** Non-coding retail trader seeking systematic workflows; needs guided onboarding, transparent backtests, and frictionless first wins to stay confident.
 
-**Power Tinkerer:** Data-savvy hobbyist iterating on complex indicators; prioritizes freedom to experiment, deep metrics, and low-friction comparisons.
+**Power Tinkerer (Iterative Builder):** Data-savvy hobbyist refining complex indicators; expects fast duplication, deep analytics, and granular control without losing context.
 
-**Community Educator:** Content creator or cohort leader sharing strategies; needs scalable template management, attribution, and trust cues for learners.
+**Crypto Educator & Community Leader (Secondary):** Influencer or cohort facilitator distributing templates; requires governance tooling, attribution, and high-signal monitoring that reinforces trust cues.
 
 ### Usability Goals
-- First meaningful backtest completed within 15 minutes via guided onboarding and starter templates.
-- Strategy canvas supports drag-and-drop editing with inline validation to reduce configuration errors by >50%.
-- Comparison dashboards surface actionable insights (KPIs, anomaly flags) in one glance to help users choose the right iteration.
+- ≥65% of new accounts complete onboarding and a first backtest within 15 minutes through guided checklists and starter templates.
+- Strategy canvas interactions reduce validation errors by >50% via inline guidance and pre-flight checks.
+- Comparison dashboards surface actionable KPIs and anomaly flags in one glance so builders decide on next steps within 2 minutes.
+- Paper-trading scheduler adoption reaches 60% of active builders, with alert acknowledgements tracked inside the notification center.
 
 ### Design Principles
 1. Progressive guidance – Start simple with templates and tooltips, then reveal depth as confidence grows.
@@ -26,6 +27,7 @@ This document defines the user experience goals, information architecture, user 
 ### Change Log
 | Date | Version | Description | Author |
 | --- | --- | --- | --- |
+| 2025-09-21 | v0.2 | Synced with PRD v1.4: added paper-trading flows, plan guardrails, mobile read-only guidance, and compliance components | Sally (UX Expert) |
 | 2025-09-20 | v0.1 | Initial UI/UX spec draft | Sally (UX Expert) |
 
 ## Information Architecture (IA)
@@ -111,8 +113,39 @@ flowchart TD
     F --> G[Educator Dashboard Metrics]
     G --> H[Alerts for Anomalies]
 ```
-- Edge Cases: Pending compliance review, takedown requests, learner over quota.
-- Success Metrics: Template adoption rate, compliance approval time, cohort engagement.
+- Edge Cases: Pending compliance review, takedown requests, learner over quota, flagged disclosures requiring edits.
+- Success Metrics: Template adoption rate, compliance approval time, cohort engagement, trust incident resolution time.
+
+### Flow: Schedule Paper Trading & Alerts
+- Goal: Let builders schedule strategies, monitor live-like performance, and respond to anomalies.
+- Diagram:
+```mermaid
+flowchart TD
+    A[Choose Strategy] --> B[Open Paper-Trading Scheduler]
+    B --> C[Set Frequency & Capital]
+    C --> D[Confirm Compliance Disclaimers]
+    D --> E[Configure Alert Thresholds]
+    E --> F[Schedule Run]
+    F --> G[Monitor Dashboard]
+    G --> H[Acknowledge Alerts]
+```
+- Edge Cases: Quota limits triggering upgrade CTAs, stale market data warnings, missed runs requiring retries, acknowledgement SLAs expiring.
+- Success Metrics: Paper-trade adoption (≥60%), alert acknowledgement time, number of retries due to data freshness issues.
+
+### Flow: Plan Limits & Upgrades
+- Goal: Enforce freemium quotas while providing a seamless upgrade path.
+- Diagram:
+```mermaid
+flowchart TD
+    A[User Hits Plan Limit] --> B[Usage Banner Appears]
+    B --> C[Review Usage Details]
+    C --> D[Upgrade CTA]
+    D --> E[Billing Confirmation]
+    E --> F[Entitlements Refresh]
+    F --> G[Resume Flow Without Losing Context]
+```
+- Edge Cases: Payment failure, entitlement sync delays, users declining upgrade, multi-tab state drift.
+- Success Metrics: Conversion rate from limit prompts, time to entitlement activation, support tickets related to plan gating.
 
 ## Component Inventory
 ### Strategy Canvas Components
@@ -138,8 +171,15 @@ flowchart TD
 ### Notifications & Monitoring Components
 - Notification Center with Filters
 - Scheduler Wizard
-- Alert Threshold Controls
+- Alert Threshold Builder & Acknowledgement Workflow
+- Compliance & Disclosures Banner
 - Cohort Performance Cards
+
+### Compliance & Trust Components
+- Disclosure snippets manager with contextual placement (onboarding, canvas, exports).
+- Risk review queue indicator for flagged templates.
+- Trust & Safety dashboard tiles summarizing incidents, resolutions, and policy updates.
+- Export watermarking and disclaimer controls supporting Story 4.3 requirements.
 
 ## Visual Language
 ### Color Palette
@@ -193,19 +233,23 @@ Integrate Axe automated scans, manual keyboard walkthroughs each release, and pe
 ### Breakpoints
 | Breakpoint | Min Width | Max Width | Target Devices |
 | --- | --- | --- | --- |
-| Mobile | 320px | 599px | iPhone SE+, Pixel |
-| Tablet | 600px | 1023px | iPad, Galaxy Tab |
+| Mobile | 320px | 599px | iPhone SE+, Pixel (read-only summaries + alerts) |
+| Tablet | 600px | 1023px | iPad, Galaxy Tab (light editing, no complex wiring) |
 | Desktop | 1024px | 1439px | MacBook Air, Surface |
 | Wide | 1440px | - | Pro monitors, ultrawide labs |
+
+**Mobile Constraints:** Hide drag-and-drop canvas editing; surface saved strategy cards, notification feed, and upgrade CTAs with quick actions.
+
+**Tablet Considerations:** Support canvas editing with simplified controls and larger hit targets; defer heavy analytics until users expand detail panes.
 
 ### Adaptation Patterns
 **Layout Changes:** Collapse side panels into drawers on tablet/mobile; stack dashboards vertically with sticky KPI summaries.
 
 **Navigation Changes:** Hamburger for primary nav on mobile; persistent bottom sheet for run status.
 
-**Content Priority:** Prioritize actionable metrics (KPIs, warnings) over dense charts; lazy-load secondary data on mobile.
+**Content Priority:** Prioritize actionable metrics (KPIs, warnings) over dense charts; mobile surfaces read-only summaries and critical alerts first.
 
-**Interaction Changes:** Canvas pinch-zoom on touch; ensure drag handles have larger hit areas.
+**Interaction Changes:** Canvas interactions limited to desktop and tablet; mobile provides read-only strategy snapshots, alert acknowledgements, and upgrade actions.
 
 ## Animation & Micro-interactions
 ### Motion Principles
@@ -228,10 +272,10 @@ Use skeleton loaders, virtualized lists for logs, defer heavy charts off-screen,
 
 ## Next Steps
 ### Immediate Actions
-1. Review spec with PM/Engineering for alignment.
-2. Translate flows into Figma wireframes and interactive prototypes.
-3. Set up design tokens in codebase aligned to palette/typography.
-4. Schedule accessibility audit once initial implementation is ready.
+1. Review spec with PM/Engineering for alignment, focusing on new paper-trading, upgrade, and compliance scenarios.
+2. Translate flows into Figma wireframes and interactive prototypes, including mobile read-only views and alert acknowledgement pathways.
+3. Set up design tokens in codebase aligned to palette/typography; extend tokens for alert thresholds and compliance messaging states.
+4. Partner with Compliance to finalize disclosure placements before handoff; schedule accessibility audit once initial implementation is ready.
 
 ### Design Handoff Checklist
 - [x] All user flows documented
