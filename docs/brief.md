@@ -1,6 +1,6 @@
 # Project Brief: Blockbuilders
 
-> Owner: **Business Analyst (Mary)** • Status: **To be review v1.0** • Date: 2025-09-19
+> Owner: **Business Analyst (Mary)** • Status: **Revision in Progress v1.1** • Date: 2025-09-21
 
 ---
 
@@ -26,6 +26,24 @@ Blockbuilders delivers a no-code strategy builder that chains together data sour
 - **Behaviors:** Produce educational content, host challenges, showcase strategies to engaged audiences.
 - **Needs & Pain Points:** Need sharable templates, reproducible backtests, collaboration-friendly tooling, and white-labeled experiences.
 - **Goals:** Provide students with structured exercises, monetize premium cohorts, and validate strategies before public releases.
+
+## Research & Market Validation
+### Evidence To Date
+- Founder discovery sessions reinforce appetite for visual, trustworthy alternatives to Pine Script bots.
+- Desk research highlights market chatter around simulation trust gaps and the scarcity of educator-friendly tooling.
+
+### In-Flight Activities
+- Five user interviews (three retail traders, two educators) scheduled during Week 1 of Sprint 1 with incentives secured and discussion guides drafted.
+- Competitive teardown across Trality, Kryll, and Composer underway to document onboarding friction, pricing, and differentiating features.
+- Research repository templates prepared in Notion to capture pains, desired outcomes, and trust signals immediately after each session.
+
+### Upcoming Deliverables
+| Initiative | Owner | Status | Target Date | Next Step |
+| --- | --- | --- | --- | --- |
+| Retail trader interviews | PM (John) + UX (Sally) | Scheduled | 2025-09-27 | Conduct first two sessions and upload recordings/notes |
+| Educator interviews | PM (John) | Scheduled | 2025-09-30 | Confirm incentives and finalize synthesis format |
+| Competitive benchmarking | BA (Mary) | In Flight | 2025-09-29 | Complete feature/pricing matrix and highlight differentiation |
+| Insight synthesis | PM (John) | Pending | 2025-10-02 | Summarize findings, update personas, and feed PRD evidence sections |
 
 ## Goals & Success Metrics
 ### Business Objectives
@@ -115,6 +133,13 @@ Over 12–24 months, Blockbuilders evolves into the preferred experimentation en
 - **Infrastructure Costs:** Intensive simulations may spike costs; mitigate through workload prioritization, caching, and premium-tier throttling.
 - **User Overwhelm:** Too many advanced options may intimidate beginners; mitigate with progressive disclosure and tutorial modes.
 
+#### Risk Tracking Summary
+| Risk Focus | Owner | Target Date | Current Status | Mitigation Notes |
+| --- | --- | --- | --- | --- |
+| Market data vendor selection | PM (John) + Data Engineer (TBD) | 2025-09-29 | On Track | Evaluate Kaiko vs. Coin Metrics licensing, document cost/coverage trade-offs |
+| Simulation realism validation | Backend/Quant Lead (TBD) | 2025-10-06 | Planned | Prototype slippage models, compare outputs against historical exchange data |
+| Freemium quota definition | PM (John) + Growth (TBD) | 2025-10-03 | Needs Kickoff | Model load impact and align quotas with monetization targets |
+
 ### Open Questions
 - Which market data vendors balance cost, latency, and licensing flexibility for launch?
 - What limits (runs/day, strategy count) make the freemium tier attractive yet convert at target rates?
@@ -130,7 +155,9 @@ Over 12–24 months, Blockbuilders evolves into the preferred experimentation en
 
 ## Appendices
 ### A. Research Summary
-Early desk research highlights strong interest in visual algo tools (e.g., TradingView Pine Script alternative demand) but limited validated data; structured user interviews and competitor benchmarking are scheduled.
+- Completed discovery notes confirm demand for intuitive, trustworthy strategy tooling and highlight onboarding confusion within incumbent platforms.
+- Upcoming interviews (Week 1, Sprint 1) and competitive teardown (Week 2, Sprint 1) will provide evidence to validate personas, pricing, and adoption assumptions.
+- Synthesis cadence established: publish insight brief within two business days after final interview and circulate to PM/UX/Engineering for roadmap alignment.
 
 ### B. Stakeholder Input
 Founders emphasize educational guardrails, community-led growth, and ensuring that “first win” happens in under 20 minutes.
@@ -140,11 +167,12 @@ Founders emphasize educational guardrails, community-led growth, and ensuring th
 - Compliance advisor memo outline (scheduled)
 
 ## Next Steps
-1. Conduct five user discovery interviews with target retail traders and synthesize findings into personas.
-2. Validate pricing and freemium limits via survey/landing page experiments.
-3. Align with legal counsel on disclaimers and simulation-only positioning across product copy.
-4. Finalize market data vendor shortlist and request pricing/licensing proposals.
-5. Prepare requirement traceability handoff for Product Manager and Architect roles.
+1. Conduct five user discovery interviews and publish synthesized persona updates by 2025-10-02.
+2. Complete competitive benchmarking deliverable and integrate takeaways into positioning brief by 2025-09-29.
+3. Draft beta implementation playbook (deployment cadence, runbooks, support SLAs) with Engineering and Support leads before architecture kickoff.
+4. Finalize market data vendor shortlist with cost/coverage comparison and present recommendation to founders by 2025-09-29.
+5. Validate pricing and freemium quota limits through survey experiments, feeding results into monetization plan by 2025-10-03.
+6. Align with legal counsel on disclaimers and simulation-only positioning, updating copy guidelines ahead of UX workshops.
 
 ### PM Handoff
 This Project Brief provides the full context for Blockbuilders. Please start in “PRD Generation Mode,” review the brief thoroughly, and collaborate to draft the PRD, asking for any necessary clarifications or suggesting improvements.

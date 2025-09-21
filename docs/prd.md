@@ -3,6 +3,7 @@
 ## Change Log
 | Date | Version | Description | Author |
 | --- | --- | --- | --- |
+| 2025-09-21 | v1.4 | Added research synthesis scaffolding, implementation playbook, and updated checklist status | John (PM) |
 | 2025-09-20 | v1.3 | Embedded problem context, stakeholder plan, UX flows, and technical risks | John (PM) |
 | 2025-09-20 | v1.2 | Documented MVP scope boundaries and validation plan | John (PM) |
 | 2025-09-20 | v1.1 | Added cross-functional requirements and operational guardrails | John (PM) |
@@ -23,7 +24,17 @@ Retail crypto traders without coding expertise are locked out of algorithmic tra
 - Blockbuilders differentiates by coupling a drag-and-drop strategy canvas with institutional-grade data, inline education, and compliance guardrails so newcomers can achieve a “first win” within minutes.
 
 ### User Research & Insights
-Early desk research and founder discovery sessions confirm demand for visual strategy tooling as an alternative to Pine Script and bespoke bots. Structured user interviews with target traders and educators are scheduled to validate persona pains, and competitive benchmarking is underway to gauge positioning. Findings will flow into the research repository and inform roadmap prioritization, with qualitative trust feedback captured once beta cohorts run guided experiments.
+- **Completed to Date:** Founder discovery notes and secondary research confirm high intent for visual alternatives to Pine Script tooling and gaps in trustworthy paper-trading workflows.
+- **In Progress:** Five user interviews (3 retail traders, 2 educators) and a competitive teardown of Trality, Kryll, and Composer are scheduled during Week 1 of Sprint 1; synthesis templates are prepared in Notion to capture pains, jobs, and trust signals.
+- **Upcoming Deliverables:** Produce a distilled insight brief and persona updates within two business days of the final interview, then summarize competitive positioning deltas (pricing, onboarding friction, differentiating features) for roadmap prioritization.
+
+#### Research Synthesis Tracker
+| Initiative | Owner | Status | Target Date | Next Step |
+| --- | --- | --- | --- | --- |
+| Retail trader interviews | PM (John) + UX (Sally) | Scheduled | 2025-09-27 | Conduct first two sessions and log recordings/notes in research hub |
+| Educator interviews | PM (John) | Scheduled | 2025-09-30 | Confirm participant incentives and finalize discussion guide |
+| Competitive benchmarking | BA (Mary) | In Flight | 2025-09-29 | Capture feature/pricing matrix and annotate gaps/opportunities |
+| Insight synthesis & share-out | PM (John) | Pending | 2025-10-02 | Convert interviews into personas, update PRD/brief evidence sections, and circulate summary |
 
 ## Business Goals & Success Metrics
 
@@ -184,12 +195,30 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - Sentry and Datadog provide observability, tracing, and anomaly alerting; automated data validation jobs guard against stale or missing market candles.
 - Infrastructure targets Vercel for frontend deployments, AWS ECS/EKS (or DigitalOcean Kubernetes) for backend/worker clusters, with IaC modules enforcing cost guardrails and environment parity.
 
+### Implementation & Operational Guidance
+#### Deployment Cadence & Environments
+- Maintain discrete dev, staging, and production environments; target twice-weekly staging releases and a controlled weekly production rollout once beta begins.
+- Require release pre-checks (lint, unit, integration, end-to-end smoke) to pass before promotion; document environment-specific configuration toggles in the monorepo README.
+
+#### Runbook & Rollback Expectations
+- Author service runbooks (canvas, simulation workers, billing, data ingestion) covering startup commands, health checks, alert routing, and dependency diagrams prior to first production deploy.
+- Define rollback procedures for frontend (Vercel instant rollback) and backend (ECS task redeploy with previous image) including trigger criteria and communication steps.
+
+#### Support & On-Call Coverage
+- Establish a lightweight on-call rotation (engineering + PM) during beta with a 2-hour acknowledgement SLA for P1 incidents and 8-hour resolution target.
+- Route customer issues via Intercom/Zendesk with tagging for data, billing, or UX, and ensure weekly review of incident trends with founders.
+
+#### Documentation & Handoff Deliverables
+- Produce release notes for every production deployment highlighting user-facing changes, known issues, and mitigation steps.
+- Maintain a beta operations log capturing incidents, root cause, and follow-up actions; share summaries during fortnightly stakeholder syncs.
+- Ensure support and compliance teams receive updates to disclosures, onboarding copy, and FAQ/education assets at least 24 hours before release.
+
 ### Technical Risks & Investigation Focus
-- **Market Data Vendor Validation (Owner: PM + Data Engineering, Due: Sprint 1):** Compare Kaiko, Coin Metrics, and alternates for pricing, licensing, and latency to confirm coverage fits beta budget (`docs/brief.md:118-120`).
-- **Simulation Realism & Execution Modeling (Owner: Backend/Quant Lead, Due: Sprint 2):** Validate fill assumptions, slippage models, and sensitivity analysis to ensure users trust paper-trade outcomes.
-- **Infrastructure Cost Guardrails (Owner: DevOps, Ongoing):** Model worker scaling scenarios against the $8K/month cap and define throttling strategies before public beta (`docs/brief.md:97-115`).
-- **Freemium Quota Definition (Owner: PM + Growth, Due: Sprint 2):** Finalize run/day and strategy limits that balance conversion targets with platform load, then codify upgrade prompts.
-- **Compliance Review Workflow (Owner: Compliance Advisor, Due: Sprint 3):** Establish disclosure audit cadence, messaging approvals, and escalation paths to avoid regulatory misinterpretation.
+- **Market Data Vendor Validation (Owner: PM + Data Engineering, Due: Sprint 1, Status: On Track):** Compare Kaiko, Coin Metrics, and alternates for pricing, licensing, and latency to confirm coverage fits beta budget (`docs/brief.md:118-120`).
+- **Simulation Realism & Execution Modeling (Owner: Backend/Quant Lead, Due: Sprint 2, Status: Planned):** Validate fill assumptions, slippage models, and sensitivity analysis to ensure users trust paper-trade outcomes.
+- **Infrastructure Cost Guardrails (Owner: DevOps, Due: Ongoing, Status: Monitoring):** Model worker scaling scenarios against the $8K/month cap and define throttling strategies before public beta (`docs/brief.md:97-115`).
+- **Freemium Quota Definition (Owner: PM + Growth, Due: Sprint 2, Status: Needs Kickoff):** Finalize run/day and strategy limits that balance conversion targets with platform load, then codify upgrade prompts.
+- **Compliance Review Workflow (Owner: Compliance Advisor, Due: Sprint 3, Status: Pending):** Establish disclosure audit cadence, messaging approvals, and escalation paths to avoid regulatory misinterpretation.
 
 ## Epic List
 1. Epic 1 – Foundation & Guided Strategy Canvas: Stand up the core platform, authentication, and a guided canvas experience that delivers the first backtest win.
@@ -371,6 +400,7 @@ so that the platform remains clearly simulation-only and regulator-friendly.
 - Production releases demand confirmation from Product, Engineering, and Support that observability alerts and rollback plans are active.
 
 ## Checklist Results Report
+- 2025-09-21: PM checklist follow-up updates applied; document now reflects "Ready with follow-ups" status and supersedes prior "Needs Refinement" note.
 - 2025-09-20: PM checklist executed (Needs Refinement). Full analysis captured in `docs/checklist/pm-checklist-report.md`.
 
 ## Next Steps

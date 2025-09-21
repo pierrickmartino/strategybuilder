@@ -1,64 +1,61 @@
-# PM Checklist Review – Blockbuilders
+# PM Checklist Review – Blockbuilders (Follow-up)
 
-**Documents Reviewed:** `docs/prd.md` (v1.3) and `docs/brief.md` (v1.0)
+**Documents Reviewed:** `docs/prd.md` (v1.4) and `docs/brief.md` (v1.1)
 **Reviewer:** Product Manager (PM)
-**Date:** 2025-09-20
+**Date:** 2025-09-21
 
 ## Executive Summary
-- PRD completeness ≈89%; most checklist areas are addressed with only research synthesis and implementation guidance still light.
-- MVP scope feels **Just Right**, but simultaneous delivery of canvas, backtests, paper trading, and billing warrants sequencing discipline.
-- Readiness for architecture phase: **Ready with caveats** pending research inputs and operational playbook additions.
-- Critical gaps: scheduled (not yet synthesized) research/competitive analysis and missing deployment/support expectations.
+- PRD completeness ≈95%; checklist coverage improved with research tracker and operational playbook additions.
+- MVP scope remains **Just Right**; activation-to-trust loop intact without unnecessary scope creep.
+- Ready for architecture phase with follow-up on research synthesis and risk tracking cadence.
+- Critical gap: upcoming interviews and competitive teardown still need synthesized insights embedded once completed.
 
 ## Category Analysis
 | Category | Status | Critical Issues |
 | --- | --- | --- |
-| Problem Definition & Context | **PARTIAL** | Research findings not yet captured; competitive insights pending interviews leaving validation assumptions open.
-| MVP Scope Definition | **PASS** |  |
-| User Experience Requirements | **PASS** |  |
-| Functional Requirements | **PASS** |  |
-| Non-Functional Requirements | **PASS** |  |
-| Epic & Story Structure | **PASS** |  |
-| Technical Guidance | **PARTIAL** | Implementation/deployment expectations and support processes remain implicit.
-| Cross-Functional Requirements | **PASS** |  |
-| Clarity & Communication | **PASS** |  |
+| Problem Definition & Context | **PASS** | Await integration of scheduled interview insights to solidify evidence base. |
+| MVP Scope Definition | **PASS** | |
+| User Experience Requirements | **PASS** | |
+| Functional Requirements | **PASS** | |
+| Non-Functional Requirements | **PASS** | |
+| Epic & Story Structure | **PASS** | |
+| Technical Guidance | **PASS** | |
+| Cross-Functional Requirements | **PASS** | |
+| Clarity & Communication | **PASS** | |
 
 ## Top Issues by Priority
 ### Blockers
-- None identified; document can move forward once high-priority items are addressed.
+- None; documents are architecture-ready while follow-ups progress.
 
 ### High Priority
-1. Incorporate synthesized user interviews/competitive benchmarking once available so assumptions are evidence-backed.
-2. Add implementation guidance covering deployment cadence, runbooks, support expectations, and documentation deliverables before engineering kickoff.
+1. Synthesize user interviews and competitive analysis into the research sections once sessions conclude (`docs/prd.md:26-37`, `docs/brief.md:30-47`).
 
 ### Medium Priority
-1. Track data-vendor selection, simulation realism validation, and freemium quota definition risks with clear owners/dates so they feed the architecture track.
-2. Confirm earlier “Needs Refinement” checklist version is superseded by this review to prevent process confusion.
+1. Keep beta operations log, release notes, and on-call expectations active as engineering work begins (`docs/prd.md:198-214`).
+2. Review and update risk register owners/dates during stakeholder syncs (`docs/brief.md:136-141`).
 
 ### Low Priority
-1. Consider appending diagram references or placeholder callouts to prep for UX/architecture attachments without bloating the document today.
+1. Add UX/architecture diagram references when assets are produced to aid future readers (`docs/prd.md:360-386`).
 
 ## MVP Scope Assessment
-- **Potential Trims:** If timeline slips, educator governance analytics and comparison enhancements are the first candidates to defer.
-- **Missing Essentials:** None observed; activation/backtest/paper trading loop is represented.
-- **Complexity Concerns:** Delivering canvas, simulations, paper trading, and billing in parallel will test the 16-week beta plan—ensure cross-team sequencing.
-- **Timeline Realism:** Achievable with parallel workstreams and early risk burndown; monitor for dependency collisions.
+- **Potential Trims:** Educator analytics enhancements, automated insight engine, advanced premium analytics stay deferred (`docs/prd.md:108-123`).
+- **Missing Essentials:** None; core canvas→backtest→paper trading loop is thoroughly defined.
+- **Complexity Concerns:** Parallel delivery of data vendor validation, simulation fidelity, and quota modeling requires close coordination but owners/dates are now explicit (`docs/prd.md:216-221`).
+- **Timeline Realism:** Remains feasible with staged releases and risk monitoring; twice-weekly staging cadence defined.
 
 ## Technical Readiness
-- Stack, observability, and infrastructure direction are clear; risks around data vendor contracts, simulation fidelity, and cost guardrails are logged but need action plans.
-- Testing expectations (unit→E2E) are defined, yet deployment/rollback procedures and documentation responsibilities should be recorded for engineering and support alignment.
+- Architecture direction, deployment cadence, runbooks, and support SLAs are specified (`docs/prd.md:198-214`).
+- Risk register updated with owners/status/timing across data, simulation, cost guardrails, quotas, and compliance (`docs/prd.md:216-221`).
+- Beta operations discipline (release notes, incident log, stakeholder sync cadence) documented; awaiting execution.
 
 ## Recommendations
-1. Synthesize upcoming interview/competitive insights into the PRD’s research subsection once sessions conclude.
-2. Draft a lightweight implementation playbook (deployment cadence, rollback, runbooks, support SLAs) within the Technical Guidance or Operational Guardrails sections.
-3. Establish an explicit risk register entry for data vendor selection, simulation realism, and freemium quotas with owners and due dates.
-4. Update the change log to reflect this checklist execution and clarify that previous “Needs Refinement” status has been resolved.
+1. Publish interview & benchmarking syntheses per committed dates and feed results into PRD/brief evidence sections (`docs/prd.md:33-37`).
+2. Initialize beta operations log and release-note workflow before first staging promotion to enforce runbook discipline (`docs/prd.md:208-214`).
+3. Maintain risk register reviews in fortnightly stakeholder syncs to ensure owners deliver mitigation plans (`docs/brief.md:136-141`).
 
 ## Final Decision
-**READY FOR ARCHITECT – WITH FOLLOW-UPS**: Clear to proceed while closing the high-priority items above in parallel.
+**READY FOR ARCHITECT – WITH FOLLOW-UPS**: Clear for architecture handoff with ongoing monitoring of research synthesis and operational readiness tasks.
 
-## Next Steps
-1. Incorporate research outcomes and competitive analysis into the PRD when available.
-2. Add implementation/runbook guidance to Technical Guidance/Operational Guardrails sections.
-3. Confirm ownership and timelines for open risks (data vendor, simulation fidelity, freemium quotas).
-4. Reconfirm checklist status with stakeholders after updates to maintain alignment.
+## Appendices
+- Source documents: `docs/prd.md` (v1.4), `docs/brief.md` (v1.1)
+- Checklist reference: `.bmad-core/checklists/pm-checklist.md`
