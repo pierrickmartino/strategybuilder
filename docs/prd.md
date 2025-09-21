@@ -1,21 +1,53 @@
 # Blockbuilders Product Requirements Document (PRD)
 
-## Goals and Background Context
+## Change Log
+| Date | Version | Description | Author |
+| --- | --- | --- | --- |
+| 2025-09-20 | v1.3 | Embedded problem context, stakeholder plan, UX flows, and technical risks | John (PM) |
+| 2025-09-20 | v1.2 | Documented MVP scope boundaries and validation plan | John (PM) |
+| 2025-09-20 | v1.1 | Added cross-functional requirements and operational guardrails | John (PM) |
+| 2025-09-20 | v1.0 | Initial PRD drafted from project brief | John (PM) |
 
-### Goals
+## Problem Definition & Context
+
+### Problem Statement
+Retail crypto traders without coding expertise are locked out of algorithmic trading or forced into brittle, manual workflows that stitch together spreadsheets, TradingView scripts, and unvetted bots. The resulting strategies are slow to prototype, difficult to reproduce, and risky to trust with capital. Blockbuilders exists to remove that barrier by giving beginners a safeguarded environment where they can experiment quickly, learn systematically, and avoid the costly mistakes that come from launching untested ideas.
+
+### Target Users & Personas
+- **Retail Crypto Tinkerers (Primary):** Individuals aged 22–45 actively trading on exchanges such as Coinbase, Binance, or Kraken with portfolios under $25K. They crave systematic workflows without needing to write code, want trustworthy data, and value coaching that builds discipline.
+- **Crypto Educators & Community Leaders (Secondary):** Influencers, newsletter writers, and cohort facilitators who teach trading concepts and need shareable templates, reproducible results, and light-touch governance for their communities.
+
+### Problem Impact & Differentiation
+- Manual experimentation today is error-prone, time-consuming, and erodes user confidence because results cannot be replicated easily.
+- Existing SaaS bots still require scripting or feel opaque, pushing beginners back to spreadsheets and trial-and-error.
+- Blockbuilders differentiates by coupling a drag-and-drop strategy canvas with institutional-grade data, inline education, and compliance guardrails so newcomers can achieve a “first win” within minutes.
+
+### User Research & Insights
+Early desk research and founder discovery sessions confirm demand for visual strategy tooling as an alternative to Pine Script and bespoke bots. Structured user interviews with target traders and educators are scheduled to validate persona pains, and competitive benchmarking is underway to gauge positioning. Findings will flow into the research repository and inform roadmap prioritization, with qualitative trust feedback captured once beta cohorts run guided experiments.
+
+## Business Goals & Success Metrics
+
+### Product Goals
 1. Deliver an intuitive visual strategy canvas that lets non-coders assemble crypto trading workflows within minutes.
 2. Provide trustworthy backtesting and paper-trading so builders can validate ideas without risking capital.
 3. Accelerate user activation through guided onboarding, starter templates, and educational guardrails.
 4. Enable community leaders and educators to share, clone, and manage strategy templates with their audiences.
 5. Establish a scalable freemium monetization path that encourages upgrades to premium analytics.
 
-### Background Context
-Blockbuilders addresses the steep learning curve faced by retail traders who want systematic strategies but lack programming skills. The current market forces users to juggle TradingView scripts, spreadsheets, and unreliable bots, eroding trust in results and slowing learning loops. By combining a drag-and-drop strategy canvas with institutional-grade market data, automated backtests, and continuous paper trading, Blockbuilders creates a safe, educational playground where experimentation feels approachable and credible. The product’s success hinges on making “first win” moments fast, defensible, and shareable so that curious traders and community educators embrace it as their primary lab environment.
+### Business Objectives
+- Launch a private beta within 16 weeks and onboard 250 qualified testers with at least 50% weekly activity.
+- Reach 10,000 free-tier signups and 700 premium conversions within six months post-launch.
+- Reduce premium churn to below 5% by month nine.
 
-### Change Log
-| Date | Version | Description | Author |
-| --- | --- | --- | --- |
-| 2025-09-20 | v1.0 | Initial PRD drafted from project brief | John (PM) |
+### Success Metrics & KPIs
+- **Activation:** ≥65% of new accounts complete guided onboarding and run a first backtest within 15 minutes.
+- **Time-to-Value:** Median time from first login to first saved strategy remains under 20 minutes.
+- **Engagement:** Active builders execute ≥4 backtests per week and 60% schedule a paper-trade run within week one.
+- **Monetization:** Free-to-premium conversion rate reaches 6–8% within 90 days with ARPU growth targets tracked monthly.
+- **Trust:** Net Trust Score averages ≥8/10, with qualitative feedback tagged by theme for PM/UX review.
+
+## Solution Overview
+Blockbuilders combines a drag-and-drop strategy canvas, institutional-grade market data, deterministic backtesting, and continuous paper trading into an approachable experimentation lab. Guided onboarding, templated strategies, and contextual education deliver early success moments, while freemium guardrails and premium analytics provide a clear upgrade path. The platform succeeds when curious traders and community educators treat it as their primary environment for designing, validating, and sharing systematic strategies.
 
 ## Requirements
 
@@ -40,19 +72,85 @@ Blockbuilders addresses the steep learning curve faced by retail traders who wan
 7. NFR7: The platform must support the latest two versions of Chrome, Edge, Safari, and Firefox on macOS, Windows, and iPadOS.
 8. NFR8: Observability must include centralized logging, metrics, and alerts that surface data quality or execution anomalies within 5 minutes.
 
-## User Interface Design Goals
+### Cross-Functional Requirements
+
+#### Data Management
+- Core application schema must capture `User`, `Strategy`, `Block`, `BacktestRun`, `PaperTradeRun`, `Template`, and `Notification` entities with immutable audit fields (created/updated timestamps, actor IDs).
+- Market data is stored in TimescaleDB with raw OHLCV retained for 24 months and hourly aggregates retained for 5 years to support long-horizon analysis.
+- Strategic artifacts (strategy graphs, configuration payloads, simulation results) must be versioned and retained for at least 18 months to preserve reproducibility.
+- Compliance and activity logs covering strategy edits, approvals, and exports must be preserved for 7 years and exportable for regulators on request.
+- Nightly snapshots and weekly full backups must be automated for TimescaleDB and application databases, with restore drills executed quarterly.
+
+#### Integrations
+- Market data connectors must support a primary vendor (e.g., Kaiko) and secondary failover (e.g., Coin Metrics) with hourly reconciliation and API key rotation every 90 days.
+- Stripe integration handles billing, entitlement updates, and invoices via signed webhooks; sandbox and production keys must be isolated with replay protection.
+- Notification services use SendGrid for email delivery and in-app notification center as fallback; email templates must contain compliance disclosures and unsubscribe links.
+- Observability data must stream into Datadog (logs, metrics, traces) with shared dashboards for product, engineering, and operations.
+- Authentication delegates to the selected identity provider (see architecture) with SSO roadmap tracked; integrations must expose role-based claims for educator and admin tooling.
+
+#### Operational Guardrails
+- Environments: maintain development, staging, and production tiers with automated CI/CD; production deploys require passing automated tests and approval from product + engineering leads.
+- Monitoring: define alert thresholds for backtest latency, ETL freshness, Stripe webhook failures, and notification bounce rates; alerts must page on-call within 5 minutes.
+- Support: offer in-app support intake with response SLAs (business hours <8h, off-hours <24h) and maintain a public status page for incidents.
+- Cost management: simulation worker autoscaling must enforce beta budget ($8K/month) with monthly cost reports shared with finance; trigger alerts at 80% budget utilization.
+- Compliance: ensure “simulation only” messaging is enforced across onboarding, exports, and emails; quarterly reviews confirm disclosures and policy updates are in place.
+
+### MVP Scope Boundaries
+
+#### In Scope (MVP Must-Haves)
+- Visual strategy canvas with block configuration, version history, and inline validation (FR1–FR2).
+- Trusted backtesting on BTC-USD and ETH-USD with deterministic workers and reporting exports (FR3, Story 2.2).
+- Paper-trading scheduler with alerting, dashboards, and compliance messaging (FR4, Epic 3 Stories 3.1–3.2).
+- Starter templates, guided onboarding, and education hub that drive first successful backtest within 15 minutes (FR5, Story 1.2).
+- Freemium plan enforcement, upgrade prompts, and Stripe-powered entitlements (FR7, Story 4.2).
+
+#### Out of Scope (MVP)
+- Educator cohort analytics beyond basic template adoption reporting (Story 3.3) — defer advanced segmentation and export tooling.
+- Insight engine recommendations and anomaly explanations requiring ML heuristics (Story 2.3) — keep KPI comparisons but exclude automated insights.
+- Community moderation workflows for template governance beyond manual review queues (Story 4.1) — targeted for post-MVP automation.
+- Premium-only deep analytics (e.g., scenario stress testing, advanced drawdown attribution) — roadmap feature for premium tiers after validation of core usage.
+
+#### Deferred Enhancements & Future Phases
+- Phase 2: Educator dashboards with cohort tagging, automated compliance workflows, and expanded sharing governance.
+- Phase 3: Insight engine, anomaly detection, and template marketplace monetization features.
+- Infrastructure roadmap: multi-region data replication, SSO integrations, and real-money trading partner integrations (pending regulatory review).
+
+### MVP Validation & Feedback Plan
+- **Activation KPI (≥65% of new accounts complete guided onboarding + first backtest)** — instrument onboarding checklist events, confirm within the first session, and review dashboards weekly during beta (`docs/brief.md:30-45`).
+- **Time-to-value KPI (median <20 minutes from first login to first saved strategy)** — log canvas save events and correlate with session start to monitor in Mixpanel/Datadog product analytics.
+- **Engagement KPI (≥4 backtests per active builder per week)** — aggregate backtest runs per user; share weekly insights in product standup to prioritize friction fixes.
+- **Paper-trade adoption KPI (60% schedule runs within week one)** — track scheduler usage; trigger automated nudges to users who complete backtest but skip scheduling.
+- **Net Trust Score (≥8/10)** — launch in-app survey at first completed paper-trade week; collect qualitative feedback tagged by theme for PM/UX review.
+- **Feedback Loops** — conduct bi-weekly beta interviews with a mix of new and returning builders, synthesize findings in research repository, and adjust roadmap accordingly.
+- **Release Readiness** — maintain a rolling beta scorecard combining KPIs above; greenlight broader GA marketing once activation + trust targets hold steady for three consecutive weeks.
+
+## User Experience Requirements
+
+### Primary User Flows
+1. **Guided Onboarding to First Backtest:** Welcome modal confirms compliance consent, walkthrough highlights canvas primitives, user loads a starter template, adjusts parameters, and triggers a backtest with contextual education and progress tracking.
+2. **Canvas Composition & Validation:** Traders drag blocks from the library, connect nodes, and edit configurations in a side panel; inline validation badges surface missing inputs, incompatible connections, or quota breaches before execution.
+3. **Backtest Review & Iteration:** Results view presents KPIs, charts, and trade logs with explainers; users duplicate strategies, compare against prior runs, and capture notes for future learning.
+4. **Paper-Trading Scheduling & Monitoring:** Scheduler workflow selects cadence, exchanges, and capital allocation; confirmation modal reiterates simulation-only status, while dashboards surface ongoing performance, alerts, and acknowledgement workflows.
+5. **Template Sharing & Governance (Premium/Educator):** Community leaders publish templates with metadata, manage duplication permissions, and monitor cohort activity through educator dashboards with at-a-glance status summaries.
+
+### Edge Cases & Error Handling
+- Provide explicit remediation steps when market data is stale or unavailable, including links to status updates.
+- Present non-blocking warnings for performance-heavy strategies with the option to proceed or revise configuration.
+- Handle failed backtests gracefully with retry guidance, surfaced logs, and suggested learning resources.
+- Communicate freemium quota limits before execution, capture upgrade intent, and resume action post-purchase without losing context.
+- Offer autosave/recovery for canvas edits to guard against browser refreshes or timeouts.
 
 ### Overall UX Vision
 Create a confident, lab-like workspace that feels approachable for non-programmers yet powerful enough for aspiring quants. The experience should guide users from exploration to execution with progressive disclosure—starter templates, wizard-like onboarding, and contextual education keep early steps simple while advanced configuration remains discoverable as users grow.
 
-### Key Interaction Paradigms
+### Interaction Paradigms
 - Drag-and-drop composition on a node-based canvas with inline validation badges.
 - Guided onboarding checklist that morphs into contextual hints and tooltips as users advance.
 - Modal or side-panel editors for block configuration with live preview of resulting signals.
 - Comparison dashboards using tabbed layouts and saved views for quick strategy benchmarking.
 - Notification center aggregating backtest, paper-trade, and compliance messages.
 
-### Core Screens and Views
+### Screen Inventory
 1. Authentication & Guided Welcome
 2. Strategy Canvas Workspace
 3. Block Configuration Side Panel
@@ -61,14 +159,11 @@ Create a confident, lab-like workspace that feels approachable for non-programme
 6. Strategy Comparison Gallery
 7. Admin & Plan Management Console
 
-### Accessibility: WCAG AA
-Adopt WCAG 2.1 AA as baseline: maintain accessible color contrast, provide keyboard navigation for canvas interactions, offer text alternatives for visual charts, and ensure notifications are perceivable through multiple modalities.
+### Accessibility & Device Coverage
+Adopt WCAG 2.1 AA as baseline: maintain accessible color contrast, provide keyboard navigation for canvas interactions, offer text alternatives for visual charts, and ensure notifications are perceivable across modalities. Responsive layouts prioritize desktop and large tablets for full composition, while mobile web delivers read-only summaries and critical alerts during MVP.
 
-### Branding
-Anchor visuals in a modern “quant lab” aesthetic—clean dark-on-light palette with accent colors for block types, consistent iconography, and typography that conveys precision without intimidation. Include friendly microcopy and success states that celebrate milestones while reiterating simulation-only positioning.
-
-### Target Device and Platforms: Web Responsive
-Responsive layouts optimized for desktop and large tablets, with breakpoints that maintain usability of the canvas, dashboards, and forms. Mobile access can deliver read-only summaries and alerts in later phases; MVP focuses on desktop-class experiences.
+### Branding & Tone
+Anchor visuals in a modern “quant lab” aesthetic—clean dark-on-light palette with accent colors per block type, consistent iconography, and typography that conveys precision without intimidation. Microcopy should celebrate milestones, reinforce simulation-only positioning, and keep compliance statements visible without breaking flow.
 
 ## Technical Assumptions
 
@@ -88,6 +183,13 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - Stripe powers billing with usage metering hooks for freemium limits; LaunchDarkly (or open-source equivalent) controls feature flags.
 - Sentry and Datadog provide observability, tracing, and anomaly alerting; automated data validation jobs guard against stale or missing market candles.
 - Infrastructure targets Vercel for frontend deployments, AWS ECS/EKS (or DigitalOcean Kubernetes) for backend/worker clusters, with IaC modules enforcing cost guardrails and environment parity.
+
+### Technical Risks & Investigation Focus
+- **Market Data Vendor Validation (Owner: PM + Data Engineering, Due: Sprint 1):** Compare Kaiko, Coin Metrics, and alternates for pricing, licensing, and latency to confirm coverage fits beta budget (`docs/brief.md:118-120`).
+- **Simulation Realism & Execution Modeling (Owner: Backend/Quant Lead, Due: Sprint 2):** Validate fill assumptions, slippage models, and sensitivity analysis to ensure users trust paper-trade outcomes.
+- **Infrastructure Cost Guardrails (Owner: DevOps, Ongoing):** Model worker scaling scenarios against the $8K/month cap and define throttling strategies before public beta (`docs/brief.md:97-115`).
+- **Freemium Quota Definition (Owner: PM + Growth, Due: Sprint 2):** Finalize run/day and strategy limits that balance conversion targets with platform load, then codify upgrade prompts.
+- **Compliance Review Workflow (Owner: Compliance Advisor, Due: Sprint 3):** Establish disclosure audit cadence, messaging approvals, and escalation paths to avoid regulatory misinterpretation.
 
 ## Epic List
 1. Epic 1 – Foundation & Guided Strategy Canvas: Stand up the core platform, authentication, and a guided canvas experience that delivers the first backtest win.
@@ -243,8 +345,33 @@ so that the platform remains clearly simulation-only and regulator-friendly.
 3. 3: Content moderation integrates with educator publishing to prevent financial advice claims.
 4. 4: Trust & safety dashboard reports incidents, resolutions, and policy updates.
 
+## Stakeholder Alignment & Communication
+
+### Stakeholder Roster
+- **Product Management (John – PM):** Owns roadmap prioritization, KPI tracking, and alignment with founders.
+- **Engineering Lead (TBD):** Guides feasibility, sequencing, and delivery commitments across services.
+- **Design Lead (Sally – UX):** Oversees experience quality, accessibility compliance, and research synthesis.
+- **Data/Quant Lead:** Protects data integrity, simulation accuracy, and reporting transparency.
+- **Compliance Advisor:** Reviews disclosures, educator governance, and risk escalation policies.
+- **Founders / Executive Sponsors:** Provide strategic guardrails, budget approval, and go-to-market alignment.
+
+### Decision Cadence
+- Weekly product/engineering/design triad reviews progress, resolves scope questions, and updates the risk register.
+- Fortnightly stakeholder sync reports KPI movement, research learnings, and outstanding decisions requiring alignment.
+- Monthly steering review with founders validates roadmap adjustments, monetization experiments, and compliance status.
+
+### Communication Plan
+- Centralize status, open issues, and research artifacts in the shared Notion workspace with written updates every Friday.
+- Use `#blockbuilders-product` Slack channel for day-to-day coordination; critical incidents escalate to the on-call bridge within 30 minutes.
+- Distribute sprint demos and beta KPI snapshots after each iteration, tagging stakeholders for required follow-ups.
+
+### Approval Workflow
+- MVP scope changes require PM + Engineering Lead + Founder approval before implementation.
+- Compliance-sensitive copy or template governance updates must be signed off by the Compliance Advisor within two business days.
+- Production releases demand confirmation from Product, Engineering, and Support that observability alerts and rollback plans are active.
+
 ## Checklist Results Report
-- PM checklist not yet executed; awaiting confirmation to run and append results.
+- 2025-09-20: PM checklist executed (Needs Refinement). Full analysis captured in `docs/checklist/pm-checklist-report.md`.
 
 ## Next Steps
 
