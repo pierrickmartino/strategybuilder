@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "strategybuilder-workers"
+version = "0.1.0"
+description = "Celery workers for Strategy Builder background processing"
+authors = ["Strategy Builder Team <dev@strategybuilder.ai>"]
+packages = [{ include = "worker" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+celery = "^5.4.0"
+redis = "^5.1.0"
+python-dotenv = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+ruff = "^0.4.8"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"

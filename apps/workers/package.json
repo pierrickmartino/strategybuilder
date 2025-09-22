@@ -1,0 +1,10 @@
+{
+  "name": "@strategybuilder/workers",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "poetry run celery -A worker.app worker --loglevel=info",
+    "lint": "poetry run ruff check worker",
+    "test": "poetry run pytest"
+  }
+}

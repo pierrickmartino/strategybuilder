@@ -5,6 +5,7 @@ out/
 yarn.lock
 pnpm-lock.yaml
 package-lock.json
+.turbo/
 
 # Python
 __pycache__/

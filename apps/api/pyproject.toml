@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "strategybuilder-api"
+version = "0.1.0"
+description = "FastAPI service for Strategy Builder"
+authors = ["Strategy Builder Team <dev@strategybuilder.ai>"]
+readme = "README.md"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+uvicorn = { extras = ["standard"], version = "^0.29.0" }
+httpx = "^0.27.0"
+python-dotenv = "^1.0.1"
+python-jose = "^3.3.0"
+SQLAlchemy = "^2.0.29"
+asyncpg = "^0.29.0"
+pydantic = "^2.7.1"
+pydantic-settings = "^2.3.1"
+redis = "^5.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+pytest-asyncio = "^0.23.6"
+ruff = "^0.4.8"
+coverage = "^7.4.4"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,52 +1,62 @@
 # Strategy Builder Monorepo
 
-A starter monorepo that wires together a Next.js + Tailwind CSS frontend with a FastAPI backend. The repository is organised in two top-level folders so each application can evolve independently.
+Strategy Builder is organised as a Turborepo monorepo that houses the Next.js experience layer, FastAPI gateway, and Celery workers under a single workspace. Shared types live inside the `packages/` directory so both runtimes can consume consistent contracts.
 
-- [`frontend/`](frontend/) – Next.js 15 application configured with Tailwind CSS.
-- [`backend/`](backend/) – FastAPI application with a ready-to-run health check endpoint.
+```
+.
+├── apps/
+│   ├── web/        # Next.js 15 App Router frontend
+│   ├── api/        # FastAPI application with Supabase-authenticated routes
+│   └── workers/    # Celery workers for async workloads
+├── packages/
+│   └── shared/     # Cross-runtime TypeScript DTOs
+├── scripts/        # Automation helpers (lint, test, CI)
+├── turbo.json      # Turborepo pipeline configuration
+└── pnpm-workspace.yaml
+```
 
 ## Prerequisites
 
-- Node.js 18 or later and npm.
-- Python 3.11 or later and pip.
+- Node.js 20+
+- pnpm 9+
+- Python 3.11+
+- Poetry 1.8+
+- Redis and Postgres (for local development of auth + workers flows)
 
-## Getting started
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The development server runs on http://localhost:3000 by default.
-
-### Backend
+## Initial setup
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
-uvicorn app.main:app --reload
+# install JS deps & register workspaces
+pnpm install
+
+# install Python deps
+poetry install --sync --no-root --directory apps/api
+poetry install --sync --no-root --directory apps/workers
+
+# seed environment variables for local dev
+cp .env.example .env
+cp .env.example apps/web/.env.local
 ```
 
-The API will be available on http://127.0.0.1:8000 and exposes a `/health` endpoint for quick smoke testing.
+## Running the stack
 
-## Testing
+```bash
+pnpm turbo run dev --parallel
+```
 
-Run the project test suite with the helper script at the repository root:
+This starts:
+- `apps/web` on http://localhost:3000
+- `apps/api` on http://localhost:8000
+- `apps/workers` Celery worker connected to the configured Redis broker
+
+## Testing & linting
 
 ```bash
 ./scripts/test.sh
 ```
 
-The script currently exercises the FastAPI backend's health endpoint using Python's built-in `unittest` runner. Additional test
-s can be added over time and wired into the same entry point to keep execution consistent.
+The script installs workspace dependencies (JavaScript + Python) and then executes `turbo run lint` and `turbo run test`, ensuring all surfaces stay green.
 
-## Next steps
+## Continuous Integration
 
-- Connect the frontend to backend endpoints using `fetch` or your preferred HTTP client.
-- Add shared tooling (linting, formatting, CI) at the repository root if desired.
-- Containerise each service or configure deployment pipelines that suit your infrastructure.
+GitHub Actions runs the same `scripts/test.sh` entry point on every push and pull request, providing unified lint + test coverage for both runtimes.

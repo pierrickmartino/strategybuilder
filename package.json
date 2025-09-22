@@ -1,0 +1,16 @@
+{
+  "name": "strategybuilder",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "pnpm turbo run dev --parallel",
+    "build": "pnpm turbo run build",
+    "lint": "pnpm turbo run lint",
+    "test": "pnpm turbo run test"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.1",
+    "@playwright/test": "^1.44.0"
+  }
+}
