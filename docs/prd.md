@@ -2,7 +2,7 @@
 
 ## Change Log
 | Date | Version | Description | Author |
-| --- | --- | --- | --- |
+| 2025-09-22 | v1.5 | Documented account provisioning playbooks, responsibility matrix, and handoff deliverables | John (PM) |
 | 2025-09-21 | v1.4 | Added research synthesis scaffolding, implementation playbook, and updated checklist status | John (PM) |
 | 2025-09-20 | v1.3 | Embedded problem context, stakeholder plan, UX flows, and technical risks | John (PM) |
 | 2025-09-20 | v1.2 | Documented MVP scope boundaries and validation plan | John (PM) |
@@ -208,10 +208,34 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - Establish a lightweight on-call rotation (engineering + PM) during beta with a 2-hour acknowledgement SLA for P1 incidents and 8-hour resolution target.
 - Route customer issues via Intercom/Zendesk with tagging for data, billing, or UX, and ensure weekly review of incident trends with founders.
 
+#### Third-Party Account Provisioning & Credential Playbook
+- **Supabase (Owner: DevOps Lead)** – Create project per environment via Terraform, capture service keys in secrets manager, and document read/write role mapping for app services; rotate keys quarterly with change tickets logged in the ops tracker.
+- **AWS Core (Owner: DevOps Lead)** – Provision IAM roles, S3 buckets, and networking stacks through IaC with approval from security advisor; enable MFA for human break-glass accounts and enforce 90-day access review checkpoints.
+- **Stripe (Owner: PM + Finance Partner)** – Request production keys through Stripe dashboard once compliance checklist is cleared, store secrets in Vault/Supabase config, and schedule automated webhook replay tests monthly; rotate restricted keys every 180 days.
+- **Market Data Vendors (Owner: Data Engineering)** – Maintain primary (Kaiko) and secondary (Coin Metrics) credentials, detailing signup, billing approvals, IP allowlists, and monitoring hooks; validate key health weekly and archive vendor contact history.
+- Centralize all provisioning runbooks in the repository `ops/playbooks/` directory with last-reviewed timestamps and escalation contacts.
+
+#### Responsibility Matrix (Human vs. Agent)
+| Task | Human Owner | Agent/Automation | Notes |
+| --- | --- | --- | --- |
+| Compliance disclosure reviews | Compliance Advisor (quarterly) | Content linting bots flag missing disclaimers | Humans sign off before releases; bot posts checklist status in CI |
+| Credential rotation & audit | DevOps Lead (Supabase/AWS); PM (Stripe) | Secrets scanner monitors repo & CI for leaks | Rotation calendar recorded in ops tracker with reminder automations |
+| Backup validation & DR drills | DevOps Lead | Scheduled restoration jobs verify snapshots | Drill outcomes logged with pass/fail and remediation items |
+| Customer support & incident comms | Support Lead + PM | Intercom auto-triage tags severity | Human decides escalation path; notifications mirrored in Slack |
+| Knowledge base updates | PM + UX Writer | Docs pipeline ensures linting & broken link checks | Weekly audit to confirm onboarding and trust content stay current |
+
+#### Backup & Restore Execution Plan
+- **Tooling:** Use managed TimescaleDB snapshots and S3 lifecycle policies; retain encrypted copies in separate AWS account for disaster recovery.
+- **Cadence:** Automate nightly incremental snapshots and weekly full backups for databases; archive application artifacts after each production deploy.
+- **Validation:** Schedule monthly restore drills into an isolated staging environment, verifying data integrity and application boot; log outcomes and follow-ups in the reliability register.
+- **Ownership & Alerts:** DevOps Lead owns cadence adherence, with Datadog monitors triggering alerts on missed backups or failed restores; compliance advisor receives quarterly summary reports.
+
 #### Documentation & Handoff Deliverables
 - Produce release notes for every production deployment highlighting user-facing changes, known issues, and mitigation steps.
 - Maintain a beta operations log capturing incidents, root cause, and follow-up actions; share summaries during fortnightly stakeholder syncs.
 - Ensure support and compliance teams receive updates to disclosures, onboarding copy, and FAQ/education assets at least 24 hours before release.
+- Deliver Sprint 0 knowledge-transfer packet covering release workflow, rollback triggers, support escalation map, and on-call expectations; update after each beta iteration.
+- Define user-facing education suite (onboarding checklist copy, trust & compliance FAQ, tutorial videos) mapped to activation KPIs, with owners assigned for creation and maintenance.
 
 ### Technical Risks & Investigation Focus
 - **Market Data Vendor Validation (Owner: PM + Data Engineering, Due: Sprint 1, Status: On Track):** Compare Kaiko, Coin Metrics, and alternates for pricing, licensing, and latency to confirm coverage fits beta budget (`docs/brief.md:118-120`).
