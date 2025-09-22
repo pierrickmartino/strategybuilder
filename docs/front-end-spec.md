@@ -26,7 +26,7 @@ This document defines the user experience goals, information architecture, user 
 
 ### Change Log
 | Date | Version | Description | Author |
-| --- | --- | --- | --- |
+| 2025-09-23 | v0.3 | Added asset optimization strategy, bundling guidance, and Storybook handoff workflow | Sally (UX Expert) |
 | 2025-09-21 | v0.2 | Synced with PRD v1.4: added paper-trading flows, plan guardrails, mobile read-only guidance, and compliance components | Sally (UX Expert) |
 | 2025-09-20 | v0.1 | Initial UI/UX spec draft | Sally (UX Expert) |
 
@@ -269,6 +269,32 @@ Subtle, purposeful motion under 250ms; ease-out curves for entrance, ease-in for
 
 ### Design Strategies
 Use skeleton loaders, virtualized lists for logs, defer heavy charts off-screen, and leverage gradient placeholders to communicate loading; prioritize above-the-fold resources.
+
+## Asset Optimization & Component Workflow
+### Asset Preparation & Storage
+- Maintain source-of-truth artwork and iconography in the Figma "Strategybuilder UI" library; attach component IDs in handoff notes so engineers can cross-link within Storybook docs.
+- Export production assets through the shared "Frontend Export" preset (WebP at 80% quality for photography, AVIF for hero imagery, SVG for icons/illustrations). Keep individual raster assets ≤180KB; flag anything larger for engineering review before merge.
+- Store optimized assets under `frontend/public/assets/{feature}` using lowercase-kebab-case naming. Automations run `npm run lint` in CI, so avoid capital letters or spaces to keep paths deterministic.
+- For animated elements, prefer CSS transitions or Lottie JSON. Host Lottie files alongside imagery and document target frame rates in the component notes.
+
+### Bundling & Loading Strategy
+- Frontend uses Next.js 15 with the default Turbopack dev bundler and `next build` for production. Lean on route-based code splitting from App Router layouts and `loading.tsx` files to keep initial payloads small.
+- Budget the `/_next/static/chunks/main` bundle to ≤150KB gzipped and each strategy-specific route to ≤200KB gzipped. Use `npm run build -- --profile` inside `frontend/` to surface bundle analyzer output before handoff.
+- Defer heavy charting or data-inspection packages via `next/dynamic` with explicit skeleton states. Only mark modules as "use client" when interactive; keep data formatting on the server to leverage React Server Components.
+- Apply `next/image` for all raster assets so Vercel handles format negotiation (WebP/AVIF) and responsive sizing. Icons ship as inline SVG components optimized with SVGO before commit (automation hook tracked in the design ops backlog).
+
+### Storybook & Component Handoff
+- Stand up Storybook 8 in `frontend/.storybook` and expose an `npm run storybook` script for local review. Each component story must include `design` annotations pointing back to the Figma frame and Controls for key tokens (spacing, elevation, state).
+- Organize stories using the `Flows/`, `Components/`, and `Primitives/` hierarchy that mirrors this spec's component inventory. Provide at least one accessibility-focused story (keyboard interaction or high-contrast mode) for interactive elements.
+- When introducing a new UI surface, deliver a paired MDX doc in Storybook that captures usage guidelines, known edge cases, and asset requirements so engineers can implement without referencing Figma.
+- Snapshots run via Chromatic in CI; execute the local visual regression command (`npm run test:visual`, once added) before requesting review to ensure no unapproved deltas leave Storybook.
+
+### QA & Release Checklist
+- ✅ Figma assets exported with optimization preset and stored under `frontend/public/assets`.
+- ✅ Bundle analyzer checked; any route exceeding budget documented with mitigation plan.
+- ✅ Storybook stories merged with design annotations, controls, and accessibility coverage.
+- ✅ Chromatic/visual regression suite green (or local `npm run test:visual` run attached once the script lands); link evidence in the pull request description.
+- ✅ Update this spec's component inventory when new UI primitives land.
 
 ## Next Steps
 ### Immediate Actions

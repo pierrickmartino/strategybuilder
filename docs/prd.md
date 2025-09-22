@@ -196,6 +196,39 @@ Establish a full testing pyramid: unit tests for React components, Python busine
 - Infrastructure targets Vercel for frontend deployments, AWS ECS/EKS (or DigitalOcean Kubernetes) for backend/worker clusters, with IaC modules enforcing cost guardrails and environment parity.
 
 ### Implementation & Operational Guidance
+#### Engineer Bootstrap Checklist
+- **Prerequisites:** Install Node.js 18+ with npm, Python 3.11+, and Git. Optional but recommended: `direnv` for env management and `make` for helper scripts referenced in `docs/architecture.md`.
+- **Clone & Workspace Setup:**
+  - `git clone git@github.com:blockbuilders/strategybuilder.git && cd strategybuilder`
+  - Until automation ships, reference this checklist as the canonical bootstrap flow; update the root `README.md` when the helper script is introduced.
+- **Frontend Install:**
+  - `cd frontend && npm install`
+  - Copy `.env.local.example` (when present) to `.env.local`; if absent, create it using the baseline values in `docs/architecture.md` (see Environment Configuration).
+  - Verify the dev server with `npm run dev`; confirm http://localhost:3000 renders the onboarding shell.
+- **Backend Install:**
+  - `cd backend && python -m venv .venv && source .venv/bin/activate`
+  - `pip install -e .` (adds FastAPI + Uvicorn)
+  - Create a `.env` file using the template below; store secrets in 1Password and inject via `direnv` during local runs.
+  - Start the API with `uvicorn app.main:app --reload` and hit `http://127.0.0.1:8000/health` to confirm readiness.
+- **Environment Variable Baseline:**
+
+  | Scope | Variable | Notes |
+  | --- | --- | --- |
+  | Frontend | `NEXT_PUBLIC_API_BASE_URL` | Default: `http://localhost:8000/api/v1` |
+  | Frontend | `NEXT_PUBLIC_SUPABASE_URL` & `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Use staging project until dedicated dev project is provisioned |
+  | Backend | `DATABASE_URL` | Point to local Postgres or Supabase connection string |
+  | Backend | `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET` | Request via DevOps; never commit |
+  | Backend | `STRIPE_SECRET_KEY` | Use test mode key; rotate every 180 days |
+  | Shared | `APP_ENV`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `LOG_LEVEL` | Defaults listed in `docs/architecture.md` |
+- **Smoke Tests:** Run `./scripts/test.sh` from repo root to validate the backend health check; add frontend lint/test wiring before beta.
+- **Documentation Hooks:** Update the root `README.md` if commands change and append new pitfalls or automation scripts to this checklist so onboarding stays current.
+
+##### Common Pitfalls & Mitigations
+- Node <18 will break Next.js 15 features (ESM, App Router). Validate with `node -v` before running installs.
+- Forgetting to activate the Python virtual environment causes `uvicorn` import errors; the prompt should show `(.venv)`.
+- Port collisions (3000/8000) occur if prior runs remain alive; stop existing processes or export alternate ports in `.env.local`/`.env`.
+- Missing `.env` keys lead to silent Supabase/Stripe failures; stub safe defaults for local dev and document overrides in the shared secrets vault.
+- Windows developers should run `npm run dev -- --hostname 0.0.0.0` to avoid network binding issues observed during early tests.
 #### Deployment Cadence & Environments
 - Maintain discrete dev, staging, and production environments; target twice-weekly staging releases and a controlled weekly production rollout once beta begins.
 - Require release pre-checks (lint, unit, integration, end-to-end smoke) to pass before promotion; document environment-specific configuration toggles in the monorepo README.
