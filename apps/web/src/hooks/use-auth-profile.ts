@@ -24,10 +24,11 @@ export function useAuthProfile() {
     }
 
     const consentMetadata = session.user.user_metadata ?? {};
+    const roles = (session.user.app_metadata?.roles as string[] | undefined) ?? [];
     return {
       id: session.user.id,
-      email: session.user.email,
-      roles: (session.user.app_metadata?.roles as string[] | undefined) ?? [],
+      email: session.user.email ?? null,
+      roles,
       consent: session.user.user_metadata?.accepted_simulation_only
         ? {
             acceptedSimulationOnly: true,
@@ -66,10 +67,12 @@ export function useAuthProfile() {
           }
         : null;
 
+      const roles = (user.app_metadata?.roles as string[] | undefined) ?? [];
+
       return {
         id: user.id,
-        email: user.email,
-        roles: (user.app_metadata?.roles as string[] | undefined) ?? [],
+        email: user.email ?? null,
+        roles,
         consent
       } satisfies AuthProfile;
     },
@@ -79,5 +82,5 @@ export function useAuthProfile() {
 
 export function useHasRole(role: string) {
   const { data } = useAuthProfile();
-  return data?.roles.includes(role) ?? false;
+  return data?.roles?.includes(role) ?? false;
 }

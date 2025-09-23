@@ -19,6 +19,8 @@ export default async function HomePage({ params }: HomePageProps) {
 
   const dictionary = await getDictionary(locale);
   const { hero, highlights, pricing } = dictionary.home;
+  const highlightItems = highlights;
+  const pricingTiers = pricing.tiers;
 
   return (
     <main className="flex min-h-screen flex-col gap-16 bg-slate-950 px-6 pb-20 pt-24 text-slate-100">
@@ -40,10 +42,10 @@ export default async function HomePage({ params }: HomePageProps) {
       </section>
 
       <section className="mx-auto grid w-full max-w-5xl gap-6 sm:grid-cols-3">
-        {highlights.map(({ title, copy }) => (
-          <article key={title} className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-            <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
-            <p className="mt-3 text-sm leading-relaxed text-slate-400">{copy}</p>
+        {highlightItems.map((item) => (
+          <article key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+            <h3 className="text-lg font-semibold text-slate-100">{item.title}</h3>
+            <p className="mt-3 text-sm leading-relaxed text-slate-400">{item.copy}</p>
           </article>
         ))}
       </section>
@@ -51,7 +53,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <section className="mx-auto w-full max-w-4xl rounded-2xl border border-slate-800 bg-slate-900/40 p-8">
         <h2 className="text-2xl font-semibold text-slate-100">{pricing.heading}</h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          {pricing.tiers.map((tier) => (
+          {pricingTiers.map((tier) => (
             <div
               key={tier.name}
               className={`rounded-xl border p-5 ${

@@ -13,6 +13,7 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
+      "@strategybuilder/shared": ["packages/shared/src/index.ts"],
       "@strategybuilder/shared/*": ["packages/shared/src/*"]
     }
   }

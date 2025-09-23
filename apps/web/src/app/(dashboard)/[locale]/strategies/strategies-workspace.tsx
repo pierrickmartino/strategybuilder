@@ -46,11 +46,13 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
 
   const initialStrategies = useMemo<Strategy[]>(
     () =>
-      dictionary.demoStrategies.map((strategy) => ({
-        id: String(strategy.id),
-        name: strategy.name,
-        notes: strategy.notes
-      })),
+      dictionary.demoStrategies.map(
+        (strategy): Strategy => ({
+          id: String(strategy.id),
+          name: strategy.name,
+          notes: strategy.notes
+        })
+      ),
     [dictionary.demoStrategies]
   );
 
@@ -80,7 +82,7 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
   const [notes, setNotes] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
-    const reset = () => {
+  const reset = () => {
     setEditingId(null);
     setName("");
     setNotes("");

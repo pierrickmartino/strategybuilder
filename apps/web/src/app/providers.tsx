@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import {
-  Hydrate,
+  HydrationBoundary,
   QueryClient,
   QueryClientProvider,
   type DehydratedState
@@ -37,8 +37,8 @@ export function Providers({ children, initialSession, initialState }: ProvidersP
   return (
     <SessionContextProvider supabaseClient={supabaseClient} initialSession={initialSession}>
       <QueryClientProvider client={queryClient}>
-        <Hydrate state={initialState}>{children}</Hydrate>
-        <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
+        <HydrationBoundary state={initialState}>{children}</HydrationBoundary>
+        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
       </QueryClientProvider>
     </SessionContextProvider>
   );

@@ -5,7 +5,11 @@ const dictionaries = {
   placeholder: () => import("./dictionaries/placeholder"),
 } as const;
 
-export type Dictionary = Awaited<ReturnType<(typeof dictionaries)[keyof typeof dictionaries]>>;
+type DictionaryModule = Awaited<
+  ReturnType<(typeof dictionaries)[keyof typeof dictionaries]>
+>;
+
+export type Dictionary = DictionaryModule["default"];
 
 export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
   const loadDictionary = dictionaries[locale] ?? dictionaries.en;

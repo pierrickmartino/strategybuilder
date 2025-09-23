@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
+import type { StrategyNode } from "@strategybuilder/shared";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { useWorkspaceBootstrap } from "@/hooks/use-workspace-bootstrap";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -33,7 +34,7 @@ export default function StrategyDesignerShell({
     }
 
     if (graph) {
-      const node = graph.nodes.find((item) => item.id === strategyId);
+      const node = graph.nodes.find((item: StrategyNode) => item.id === strategyId);
       if (node) {
         setTitle(node.label);
       }

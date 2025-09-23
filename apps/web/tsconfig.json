@@ -17,8 +17,11 @@
       "@/*": [
         "*"
       ],
+      "@strategybuilder/shared": [
+        "../../../packages/shared/src/index.ts"
+      ],
       "@strategybuilder/shared/*": [
-        "../../packages/shared/src/*"
+        "../../../packages/shared/src/*"
       ]
     },
     "plugins": [

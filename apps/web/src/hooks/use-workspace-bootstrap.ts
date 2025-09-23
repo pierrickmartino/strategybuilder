@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSessionContext, useSupabaseClient } from "@supabase/auth-helpers-react";
 
@@ -44,11 +44,18 @@ export function useWorkspaceBootstrap() {
     return fetchWorkspaceBootstrap(accessToken);
   }, [session?.access_token, supabase]);
 
-  return useQuery<WorkspaceBootstrapPayload>({
+  const query = useQuery<WorkspaceBootstrapPayload>({
     queryKey: ["workspace", "bootstrap"],
     enabled: Boolean(session) && !hydrated,
     queryFn,
-    staleTime: 5 * 60 * 1000,
-    onSuccess: hydrate
+    staleTime: 5 * 60 * 1000
   });
+
+  useEffect(() => {
+    if (query.data && !hydrated) {
+      hydrate(query.data);
+    }
+  }, [hydrate, hydrated, query.data]);
+
+  return query;
 }
