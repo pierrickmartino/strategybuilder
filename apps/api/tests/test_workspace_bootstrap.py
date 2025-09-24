@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from datetime import datetime, timedelta
 
 import pytest
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from app.auth.schemas import (
   AuthenticatedUser,
@@ -27,11 +29,47 @@ from app.services.workspace_service import (
 pytestmark = pytest.mark.asyncio
 
 
+class AsyncSessionWrapper:
+  """Minimal asynchronous wrapper around a synchronous SQLAlchemy session."""
+
+  def __init__(self, sync_session):
+    self._sync_session = sync_session
+
+  async def __aenter__(self):
+    return self
+
+  async def __aexit__(self, exc_type, exc, tb):
+    await self.close()
+
+  def add(self, instance):
+    self._sync_session.add(instance)
+
+  async def execute(self, *args, **kwargs):
+    return await asyncio.to_thread(self._sync_session.execute, *args, **kwargs)
+
+  async def flush(self):
+    return await asyncio.to_thread(self._sync_session.flush)
+
+  async def commit(self):
+    return await asyncio.to_thread(self._sync_session.commit)
+
+  async def close(self):
+    return await asyncio.to_thread(self._sync_session.close)
+
+
 async def _create_session_factory():
-  engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
-  async with engine.begin() as connection:
-    await connection.run_sync(Base.metadata.create_all)
-  return async_sessionmaker(engine, expire_on_commit=False)
+  engine = create_engine(
+    "sqlite:///:memory:",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool
+  )
+  Base.metadata.create_all(engine)
+  sync_session_factory = sessionmaker(bind=engine)
+
+  def factory():
+    return AsyncSessionWrapper(sync_session_factory())
+
+  return factory
 
 
 def _build_authenticated_user(accepted: bool = True) -> AuthenticatedUser:
