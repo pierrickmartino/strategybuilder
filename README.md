@@ -34,17 +34,19 @@ poetry install --sync --no-root --directory apps/api
 poetry install --sync --no-root --directory apps/workers
 
 # seed environment variables for local dev
-cp .env.example .env
+cp .env.example apps/api/.env
+cp .env.example apps/workers/.env
 cp .env.example apps/web/.env.local
 ```
 
 ### Environment configuration
 
 The repository ships with a `.env.example` file that contains all of the
-environment variables required to run the full stack locally. After copying it
-to `.env` (for the FastAPI gateway and workers) and `apps/web/.env.local` (for
-the Next.js frontend), replace the placeholder values with credentials that
-match your local infrastructure:
+environment variables required to run the full stack locally. Copy it to
+`apps/api/.env` so the FastAPI gateway picks up the values, `apps/workers/.env`
+for the Celery worker, and `apps/web/.env.local` for the Next.js frontend. Then
+replace the placeholder values with credentials that match your local
+infrastructure:
 
 | Variable | Purpose |
 | --- | --- |
