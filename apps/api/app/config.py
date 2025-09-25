@@ -17,15 +17,15 @@ ENV_FILES = (
 class Settings(BaseSettings):
   """Project settings loaded from environment variables."""
 
-  app_env: str
-  api_host: str
-  api_port: int
-  database_url: str
-  redis_url: str
-  supabase_url: str
-  supabase_service_role_key: str
-  supabase_jwt_secret: str
-  supabase_api_audience: str
+  app_env: str = "test"
+  api_host: str = "127.0.0.1"
+  api_port: int = 8000
+  database_url: str = "sqlite+aiosqlite:///:memory:"
+  redis_url: str = "redis://localhost:6379/0"
+  supabase_url: str = "https://demo.supabase.co"
+  supabase_service_role_key: str = "local-service-role"
+  supabase_jwt_secret: str = "local-secret"
+  supabase_api_audience: str = "authenticated"
   supabase_anon_key: str | None = None
 
   model_config = SettingsConfigDict(
