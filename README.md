@@ -76,6 +76,11 @@ This starts:
 - `apps/api` on http://localhost:8000
 - `apps/workers` Celery worker connected to the configured Redis broker
 
+If port 8000 is already in use on your machine, update `API_PORT` in `.env`
+and adjust `NEXT_PUBLIC_API_BASE_URL` in `apps/web/.env.local` before starting
+the stack; the API dev server now respects those overrides when launched
+through Turbo.
+
 ## Testing & linting
 
 ```bash

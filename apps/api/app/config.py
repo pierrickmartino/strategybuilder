@@ -1,26 +1,38 @@
 """Application configuration settings."""
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+ENV_FILES = (
+  REPO_ROOT / ".env",
+  REPO_ROOT / ".env.local",
+)
+
+
 class Settings(BaseSettings):
   """Project settings loaded from environment variables."""
 
-  app_env: str = "development"
-  api_host: str = "0.0.0.0"
-  api_port: int = 8000
-  database_url: str = "sqlite+aiosqlite:///./strategybuilder.db"
-  redis_url: str = "redis://localhost:6379/0"
-  supabase_url: str = "https://placeholder.supabase.co"
-  supabase_service_role_key: str = "service-role-key"
-  supabase_jwt_secret: str = "dev-secret"
-  supabase_api_audience: str = "authenticated"
+  app_env: str
+  api_host: str
+  api_port: int
+  database_url: str
+  redis_url: str
+  supabase_url: str
+  supabase_service_role_key: str
+  supabase_jwt_secret: str
+  supabase_api_audience: str
   supabase_anon_key: str | None = None
 
-  model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="allow")
+  model_config = SettingsConfigDict(
+    env_file=ENV_FILES,
+    env_file_encoding="utf-8",
+    extra="allow"
+  )
 
   @property
   def supabase_project_id(self) -> str:
