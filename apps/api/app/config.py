@@ -17,7 +17,7 @@ ENV_FILES = (
 class Settings(BaseSettings):
   """Project settings loaded from environment variables."""
 
-  app_env: str = "test"
+  app_env: str = "development"
   api_host: str = "127.0.0.1"
   api_port: int = 8000
   database_url: str = "sqlite+aiosqlite:///:memory:"
