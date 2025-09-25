@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@9.0.0",
   "scripts": {
-    "dev": "pnpm turbo run dev --parallel",
+    "dev": "./scripts/dev-services.sh && pnpm turbo run dev --parallel",
     "build": "pnpm turbo run build",
     "lint": "pnpm turbo run lint",
     "test": "pnpm turbo run test"
