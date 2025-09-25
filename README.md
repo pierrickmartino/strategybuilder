@@ -67,14 +67,22 @@ reachable services when you start the dev stack.
 
 ## Running the stack
 
+Run the dev task, which now also ensures Dockerized Postgres and Redis are
+available before booting the application processes:
+
 ```bash
-pnpm turbo run dev --parallel
+pnpm dev
 ```
 
 This starts:
 - `apps/web` on http://localhost:3000
 - `apps/api` on http://localhost:8000
 - `apps/workers` Celery worker connected to the configured Redis broker
+
+The helper script behind `pnpm dev` launches Postgres and Redis using
+`docker-compose.yml`. If you already run these services locally, set
+`SKIP_DEV_SERVICES=1` before starting the dev task to skip the automated
+bootstrap.
 
 If port 8000 is already in use on your machine, update `API_PORT` in `.env`
 and adjust `NEXT_PUBLIC_API_BASE_URL` in `apps/web/.env.local` before starting
