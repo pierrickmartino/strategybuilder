@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const redirectTo = requestUrl.searchParams.get("next") ?? "/en/strategies";
 
   if (code) {
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     await supabase.auth.exchangeCodeForSession(code);
   }
 
