@@ -7,10 +7,12 @@ import uuid
 from datetime import datetime, timedelta
 
 import pytest
+from fastapi import HTTPException, status
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.auth.dependencies import require_compliance_consent
 from app.auth.schemas import (
   AuthenticatedUser,
   SupabaseAppMetadata,
@@ -125,3 +127,12 @@ async def test_bootstrap_creates_workspace_and_audit_event():
     workspace_again, _, _, created_again = await get_or_create_demo_workspace(session, actor)
     assert created_again is False
     assert workspace_again.id == workspace.id
+
+
+async def test_bootstrap_rejects_users_without_consent():
+  actor = _build_authenticated_user(accepted=False)
+
+  with pytest.raises(HTTPException) as exc:
+    await require_compliance_consent(actor)
+
+  assert exc.value.status_code == status.HTTP_403_FORBIDDEN

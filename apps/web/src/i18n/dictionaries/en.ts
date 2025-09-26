@@ -78,6 +78,7 @@ const en = {
     workspacePrefix: "Workspace: {name}",
     onboardingHeading: "Onboarding checklist",
     loadingWorkspace: "Bootstrapping your demo workspace...",
+    bootstrapError: "We couldn't load your workspace. Re-authenticate or contact support if the issue persists.",
     description: "Launch into your seeded workspace, tweak nodes, and explore the canvas.",
     nameLabel: "Strategy name",
     namePlaceholder: "e.g. Trend Following",

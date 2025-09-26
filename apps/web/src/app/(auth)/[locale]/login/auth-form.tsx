@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 import type { Locale } from "@/i18n/config";
@@ -25,6 +25,7 @@ export default function AuthForm({ locale, dictionary }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [consent, setConsent] = useState(false);
+  const [oauthConsent, setOauthConsent] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,17 +35,40 @@ export default function AuthForm({ locale, dictionary }: AuthFormProps) {
     [locale, searchParams]
   );
 
+  useEffect(() => {
+    const errorCode = searchParams.get("error");
+    if (!errorCode) {
+      return;
+    }
+
+    if (errorCode === "consent-required") {
+      setError(dictionary.messages.consentRequired);
+    } else if (errorCode === "consent-update-failed") {
+      setError(dictionary.messages.genericError);
+    }
+  }, [searchParams, dictionary.messages.consentRequired, dictionary.messages.genericError]);
+
   const handleOAuthSignIn = async () => {
     setError(null);
+    setStatusMessage(null);
+
+    if (!oauthConsent) {
+      setError(dictionary.messages.consentRequired);
+      return;
+    }
+
     setStatusMessage(dictionary.messages.redirectingForOAuth);
 
     const origin = window.location.origin;
-    const callbackUrl = new URL("/api/auth/callback", origin).toString();
+    const callbackUrl = new URL("/api/auth/callback", origin);
+    callbackUrl.searchParams.set("consent", "true");
+    callbackUrl.searchParams.set("locale", locale);
+    callbackUrl.searchParams.set("next", redirectPath);
 
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: OAUTH_PROVIDER,
       options: {
-        redirectTo: callbackUrl,
+        redirectTo: callbackUrl.toString(),
         scopes: "email"
       }
     });
@@ -139,6 +163,20 @@ export default function AuthForm({ locale, dictionary }: AuthFormProps) {
           >
             {dictionary.oauthButton}
           </button>
+          {mode === "sign-in" && (
+            <label className="flex items-start gap-3 text-xs text-slate-300">
+              <input
+                type="checkbox"
+                checked={oauthConsent}
+                onChange={(event) => setOauthConsent(event.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border border-slate-700 bg-slate-950 text-sky-500 focus:ring-sky-400"
+              />
+              <span className="text-left">
+                {dictionary.consentLabel}
+                <span className="mt-1 block text-[0.7rem] text-slate-500">{dictionary.consentHint}</span>
+              </span>
+            </label>
+          )}
           <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-slate-500">
             <span className="h-px flex-1 bg-slate-800" />
             {dictionary.orDivider}
@@ -215,6 +253,8 @@ export default function AuthForm({ locale, dictionary }: AuthFormProps) {
               setMode((prev) => (prev === "sign-in" ? "sign-up" : "sign-in"));
               setError(null);
               setStatusMessage(null);
+              setConsent(false);
+              setOauthConsent(false);
             }}
             className="w-full text-sm text-sky-300 hover:text-sky-200"
           >

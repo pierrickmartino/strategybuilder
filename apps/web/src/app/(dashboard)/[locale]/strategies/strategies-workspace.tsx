@@ -38,7 +38,11 @@ type StrategiesWorkspaceProps = {
 
 export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceProps) {
   const { locale } = useParams<{ locale: string }>();
-  const { isLoading } = useWorkspaceBootstrap();
+  const {
+    isLoading,
+    isError,
+    error: bootstrapError
+  } = useWorkspaceBootstrap();
   const workspace = useWorkspaceStore((state) => state.workspace);
   const strategySummary = useWorkspaceStore((state) => state.strategy);
   const graph = useWorkspaceStore((state) => state.graph);
@@ -181,6 +185,12 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
 
           {isLoading && (
             <p className="text-sm text-slate-400">{dictionary.loadingWorkspace}</p>
+          )}
+          {isError && (
+            <p className="text-sm text-red-400">
+              {dictionary.bootstrapError}
+              {bootstrapError instanceof Error ? ` (${bootstrapError.message})` : null}
+            </p>
           )}
 
           <ul className="grid gap-4 sm:grid-cols-2">
