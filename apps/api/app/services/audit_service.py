@@ -38,7 +38,7 @@ async def record_workspace_bootstrap(
       "user_id": actor.id,
       "workspace_id": payload.get("workspace", {}).get("id"),
       "strategy_id": payload.get("strategy", {}).get("id"),
-      "created": payload.get("created")
+      "workspace_created_at": payload.get("created")
     }
   )
 
