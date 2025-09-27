@@ -1,4 +1,7 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
+
+const projectRoot = fileURLToPath(new URL("./src", import.meta.url));
 
 export default defineConfig({
   test: {
@@ -9,5 +12,13 @@ export default defineConfig({
       provider: "v8",
       reportsDirectory: "./coverage"
     }
+  },
+  resolve: {
+    alias: {
+      "@": projectRoot
+    }
+  },
+  esbuild: {
+    jsx: "automatic"
   }
 });

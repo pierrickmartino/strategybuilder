@@ -6,11 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import require_compliance_consent
 from app.auth.schemas import AuthenticatedUser
 from app.db.session import get_db
-from app.services.audit_service import record_workspace_bootstrap
-from app.services.workspace_service import (
-  get_or_create_demo_workspace,
-  workspace_response_payload
-)
+from app.services.workspace_service import bootstrap_workspace_payload
 
 router = APIRouter(prefix="/workspaces", tags=["Workspaces"])
 
@@ -21,11 +17,6 @@ async def bootstrap_workspace(
   session: AsyncSession = Depends(get_db)
 ) -> dict[str, object]:
   """Create the demo workspace on first login and return the bootstrap payload."""
-  workspace, strategy, version, created = await get_or_create_demo_workspace(session, user)
-  payload = workspace_response_payload(workspace, strategy, version)
-  payload["created"] = created
-  payload["userId"] = str(workspace.user_id)
-
-  await record_workspace_bootstrap(session, user, payload)
+  payload, _ = await bootstrap_workspace_payload(session, user)
 
   return payload

@@ -11,6 +11,9 @@
   },
   "devDependencies": {
     "turbo": "^2.1.1",
-    "@playwright/test": "^1.44.0"
+    "@playwright/test": "^1.44.0",
+    "@types/jsonwebtoken": "^9.0.5",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
   }
 }

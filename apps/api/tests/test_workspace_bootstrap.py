@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import uuid
 from datetime import datetime, timedelta
 
@@ -21,11 +22,11 @@ from app.auth.schemas import (
 )
 from app.db.base import Base
 from app.models.compliance_event import ComplianceEvent
-from app.services.audit_service import record_workspace_bootstrap
 from app.services.user_service import sync_user_from_claims
 from app.services.workspace_service import (
-  get_or_create_demo_workspace,
-  workspace_response_payload
+  LATENCY_BUDGET_MS,
+  bootstrap_workspace_payload,
+  get_or_create_demo_workspace
 )
 
 pytestmark = pytest.mark.asyncio
@@ -103,17 +104,12 @@ async def test_bootstrap_creates_workspace_and_audit_event():
     actor = _build_authenticated_user()
     await sync_user_from_claims(session, actor)
 
-    workspace, strategy, version, created = await get_or_create_demo_workspace(session, actor)
-    assert created is True
-    assert workspace.name == "Demo Workspace"
-    assert strategy.name
-    assert version.graph["nodes"]
+    payload, duration_ms = await bootstrap_workspace_payload(session, actor)
+    assert payload["created"] is True
+    assert payload["workspace"]["name"] == "Demo Workspace"
+    assert payload["strategy"]["id"]
+    assert duration_ms < LATENCY_BUDGET_MS
 
-    payload = workspace_response_payload(workspace, strategy, version)
-    payload["created"] = created
-    payload["userId"] = str(workspace.user_id)
-
-    await record_workspace_bootstrap(session, actor, payload)
     await session.commit()
 
     result = await session.execute(select(ComplianceEvent))
@@ -122,11 +118,12 @@ async def test_bootstrap_creates_workspace_and_audit_event():
     event = events[0]
     assert event.event_type == "workspace.bootstrap"
     assert event.payload["workspaceId"] == payload["workspace"]["id"]
+    assert event.payload["workspaceCreatedAt"] == payload["workspace"]["createdAt"]
 
     # Subsequent calls should not recreate the workspace
     workspace_again, _, _, created_again = await get_or_create_demo_workspace(session, actor)
     assert created_again is False
-    assert workspace_again.id == workspace.id
+    assert str(workspace_again.id) == payload["workspace"]["id"]
 
 
 async def test_bootstrap_rejects_users_without_consent():
@@ -136,3 +133,43 @@ async def test_bootstrap_rejects_users_without_consent():
     await require_compliance_consent(actor)
 
   assert exc.value.status_code == status.HTTP_403_FORBIDDEN
+
+
+async def test_bootstrap_emits_latency_log(caplog):
+  session_factory = await _create_session_factory()
+
+  async with session_factory() as session:
+    actor = _build_authenticated_user()
+    await sync_user_from_claims(session, actor)
+
+    caplog.set_level(logging.INFO, logger="strategybuilder.performance")
+
+    _, duration_ms = await bootstrap_workspace_payload(session, actor)
+
+    logs = [record for record in caplog.records if record.name == "strategybuilder.performance"]
+    assert logs, "Expected latency instrumentation log for workspace bootstrap"
+    record = logs[-1]
+    assert record.getMessage() == "workspaces.bootstrap.latency"
+    assert record.duration_ms < LATENCY_BUDGET_MS
+    assert record.latency_budget_ms == LATENCY_BUDGET_MS
+    assert record.workspace_created is True
+    assert duration_ms < LATENCY_BUDGET_MS
+
+
+async def test_bootstrap_records_audit_timestamp(caplog):
+  session_factory = await _create_session_factory()
+
+  async with session_factory() as session:
+    actor = _build_authenticated_user()
+    await sync_user_from_claims(session, actor)
+
+    caplog.set_level(logging.INFO, logger="strategybuilder.audit")
+
+    payload, _ = await bootstrap_workspace_payload(session, actor)
+
+    audit_logs = [record for record in caplog.records if record.name == "strategybuilder.audit"]
+    assert audit_logs, "Expected audit log entry for workspace bootstrap"
+    record = audit_logs[-1]
+    assert record.workspace_created_at == payload["workspace"]["createdAt"]
+    assert record.workspace_created is True
+    assert record.user_id == actor.id

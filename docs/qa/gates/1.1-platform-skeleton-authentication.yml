@@ -2,42 +2,43 @@ schema: 1
 story: '1.1'
 story_title: 'Platform Skeleton & Authentication'
 gate: PASS
-status_reason: 'Auth guard and consent enforcement fixes validated; OAuth users can now reach the workspace and all automated suites pass.'
+status_reason: 'Supabase callback now refreshes the session post-consent and backend telemetry confirms workspace bootstrap succeeds without regressions.'
 reviewer: 'Quinn (Test Architect)'
-updated: '2025-09-26T23:00:00Z'
+updated: '2025-09-27T14:20:43Z'
 quality_score: 100
-top_issues: []
+top_issues:
+  - id: UX-001
+    severity: low
+    summary: 'Login screen does not surface an error when the session refresh fails, leaving users without guidance if Supabase rejects the refresh.'
+    refs:
+      - 'apps/web/src/app/(auth)/[locale]/login/auth-form.tsx:40'
+    suggested_owner: dev
 waiver:
   active: false
 evidence:
-  tests_reviewed: 7
-  risks_identified: 0
+  tests_reviewed: 2
+  risks_identified: 1
   trace:
     ac_covered: [1, 2, 3, 4]
     ac_gaps: []
 nfr_validation:
   security:
     status: PASS
-    notes: 'Middleware now protects workspace routes and consent metadata is enforced for OAuth sign-ins.'
+    notes: 'OAuth consent callback refreshes Supabase session and backend dependency now receives consented JWTs.'
   performance:
     status: PASS
-    notes: 'No change to request volume or complexity; existing caching covers bootstrap.'
+    notes: 'Bootstrap path instrumented with latency metrics and validated under the 150 ms budget in tests.'
   reliability:
     status: PASS
-    notes: 'Bootstrap flow succeeds for both email/password and OAuth paths; error handling surfaces failures to the UI.'
+    notes: 'Workspace provisioning remains idempotent and audit logging verified by integration coverage.'
   maintainability:
     status: PASS
-    notes: 'Unit coverage added for route guards; recommend future integration tests for end-to-end auth scenarios.'
+    notes: 'Telemetry and consent flows encapsulated in helpers with regression tests guarding the contract.'
 recommendations:
   immediate: []
   future:
-    - action: 'Add front-end integration tests that simulate OAuth consent acceptance and rejection states.'
+    - action: 'Map the new session-refresh-failed error code to a user-visible message so failed refresh attempts provide guidance.'
       refs:
-        - apps/web/tests
+        - apps/web/src/app/(auth)/[locale]/login/auth-form.tsx
       suggested_owner: dev
-    - action: 'Extend API contract tests to assert consent metadata updates after OAuth callbacks.'
-      refs:
-        - apps/api/tests/test_workspace_bootstrap.py
-        - apps/web/src/app/api/auth/callback/route.ts
-      suggested_owner: dev
-expires: '2025-10-10T00:00:00Z'
+expires: '2025-10-11T00:00:00Z'

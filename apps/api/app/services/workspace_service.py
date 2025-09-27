@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
+from time import perf_counter
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.schemas import AuthenticatedUser
 from app.models.strategy import Strategy, StrategyVersion
 from app.models.workspace import Workspace
+from app.services.audit_service import record_workspace_bootstrap
 
 DEMO_STRATEGY_NAME = "Momentum Playground"
 DEMO_STRATEGY_DESCRIPTION = "Sample graph that showcases entry, risk, and analytics blocks."
@@ -63,6 +66,10 @@ DEMO_CALLOUTS = [
     "placement": "left"
   }
 ]
+
+LATENCY_BUDGET_MS = 150
+
+performance_logger = logging.getLogger("strategybuilder.performance")
 
 
 async def get_or_create_demo_workspace(
@@ -143,3 +150,30 @@ def workspace_response_payload(
       "createdAt": version.created_at.isoformat() if version.created_at else None
     }
   }
+
+
+async def bootstrap_workspace_payload(
+  session: AsyncSession, actor: AuthenticatedUser
+) -> tuple[dict[str, object], float]:
+  """Provision the workspace payload and emit latency telemetry."""
+  start = perf_counter()
+  workspace, strategy, version, created = await get_or_create_demo_workspace(session, actor)
+
+  payload = workspace_response_payload(workspace, strategy, version)
+  payload["created"] = created
+  payload["userId"] = str(workspace.user_id)
+
+  await record_workspace_bootstrap(session, actor, payload)
+
+  duration_ms = (perf_counter() - start) * 1000
+  performance_logger.info(
+    "workspaces.bootstrap.latency",
+    extra={
+      "duration_ms": duration_ms,
+      "latency_budget_ms": LATENCY_BUDGET_MS,
+      "workspace_created": created,
+      "user_id": actor.id
+    }
+  )
+
+  return payload, duration_ms

@@ -17,39 +17,52 @@ export async function GET(request: NextRequest) {
   const locale = resolveLocale(requestUrl.searchParams.get("locale"));
   const redirectTarget = requestUrl.searchParams.get("next") ?? `/${locale}/strategies`;
 
-  if (code) {
-    const supabase = await createSupabaseServerClient();
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+  if (!code) {
+    return NextResponse.redirect(new URL(redirectTarget, requestUrl.origin));
+  }
 
-    if (!exchangeError) {
-      const {
-        data: userResult,
-        error: userError
-      } = await supabase.auth.getUser();
-      const user = userError ? null : userResult?.user;
+  const supabase = await createSupabaseServerClient();
+  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-      if (user && !user.user_metadata?.accepted_simulation_only) {
-        if (consentAccepted) {
-          const { error: updateError } = await supabase.auth.updateUser({
-            data: {
-              accepted_simulation_only: true,
-              accepted_simulation_only_at: new Date().toISOString()
-            }
-          });
-          if (updateError) {
-            const loginUrl = new URL(`/${locale}/login`, requestUrl.origin);
-            loginUrl.searchParams.set("error", "consent-update-failed");
-            loginUrl.searchParams.set("redirectTo", redirectTarget);
-            return NextResponse.redirect(loginUrl);
-          }
-        } else {
-          const loginUrl = new URL(`/${locale}/login`, requestUrl.origin);
-          loginUrl.searchParams.set("error", "consent-required");
-          loginUrl.searchParams.set("redirectTo", redirectTarget);
-          return NextResponse.redirect(loginUrl);
-        }
-      }
+  if (exchangeError) {
+    return NextResponse.redirect(new URL(redirectTarget, requestUrl.origin));
+  }
+
+  const {
+    data: userResult,
+    error: userError
+  } = await supabase.auth.getUser();
+  const user = userError ? null : userResult?.user;
+
+  if (!user || user.user_metadata?.accepted_simulation_only) {
+    return NextResponse.redirect(new URL(redirectTarget, requestUrl.origin));
+  }
+
+  const buildLoginRedirect = (errorCode: string) => {
+    const loginUrl = new URL(`/${locale}/login`, requestUrl.origin);
+    loginUrl.searchParams.set("error", errorCode);
+    loginUrl.searchParams.set("redirectTo", redirectTarget);
+    return NextResponse.redirect(loginUrl);
+  };
+
+  if (!consentAccepted) {
+    return buildLoginRedirect("consent-required");
+  }
+
+  const { error: updateError } = await supabase.auth.updateUser({
+    data: {
+      accepted_simulation_only: true,
+      accepted_simulation_only_at: new Date().toISOString()
     }
+  });
+
+  if (updateError) {
+    return buildLoginRedirect("consent-update-failed");
+  }
+
+  const { error: refreshError } = await supabase.auth.refreshSession();
+  if (refreshError) {
+    return buildLoginRedirect("session-refresh-failed");
   }
 
   return NextResponse.redirect(new URL(redirectTarget, requestUrl.origin));
