@@ -15,7 +15,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": projectRoot
+      "@": projectRoot,
+      "@strategybuilder/shared": fileURLToPath(new URL("../../packages/shared/src", import.meta.url))
     }
   },
   esbuild: {

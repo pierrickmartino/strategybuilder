@@ -57,7 +57,7 @@ export default function StrategyDesignerShell({
       <section className="flex flex-1 min-h-0 flex-col gap-4 px-8 py-6">
         <p className="text-sm text-slate-400">{title}</p>
         <div className="flex flex-1 min-h-0">
-          <DesignerCanvas strategyName={title} />
+          <DesignerCanvas strategyId={strategyId} />
         </div>
       </section>
     </main>

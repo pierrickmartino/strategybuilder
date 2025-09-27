@@ -7,7 +7,7 @@ from datetime import datetime
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -43,9 +43,12 @@ class StrategyVersion(Base):
 
   id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
   strategy_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("strategies.id"))
-  version_name: Mapped[str] = mapped_column(String(length=64), nullable=False)
-  graph: Mapped[dict] = mapped_column(JSON, nullable=False)
+  version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+  label: Mapped[str] = mapped_column(String(length=64), nullable=False, default="Auto Save")
+  graph_json: Mapped[dict] = mapped_column(JSON, nullable=False)
   educator_callouts: Mapped[list[dict[str, str]]] = mapped_column(JSON, default=list)
+  notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+  validation_issues: Mapped[list[dict[str, object]]] = mapped_column(JSON, default=list)
   created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
   updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
