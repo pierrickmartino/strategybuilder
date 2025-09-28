@@ -1,0 +1,282 @@
+{
+  "signalTypes": ["timeseries", "signal", "risk", "order"],
+  "blocks": [
+    {
+      "kind": "market-data",
+      "label": "Market Data Feed",
+      "category": "source",
+      "description": "Streams OHLCV candles for a selected asset.",
+      "ports": {
+        "inputs": [],
+        "outputs": [
+          {
+            "id": "timeseries",
+            "label": "Price Series",
+            "type": "timeseries"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "key": "symbol",
+          "label": "Symbol",
+          "type": "enum",
+          "options": ["BTC-USD", "ETH-USD", "AAPL", "SPY"],
+          "default": "BTC-USD",
+          "hint": "Select the instrument feeding the pipeline."
+        },
+        {
+          "key": "granularity",
+          "label": "Candle Interval",
+          "type": "enum",
+          "options": ["1m", "5m", "1h", "1d"],
+          "default": "5m",
+          "hint": "Controls the cadence of incoming market data."
+        }
+      ],
+      "limits": {
+        "free": 1,
+        "pro": 5
+      }
+    },
+    {
+      "kind": "momentum-indicator",
+      "label": "Momentum Indicator",
+      "category": "indicator",
+      "description": "Calculates fast/slow EMA crossover to gauge trend strength.",
+      "ports": {
+        "inputs": [
+          {
+            "id": "price",
+            "label": "Price Series",
+            "type": "timeseries",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "id": "momentum",
+            "label": "Momentum Score",
+            "type": "timeseries"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "key": "fastLength",
+          "label": "Fast Window",
+          "type": "number",
+          "min": 3,
+          "max": 50,
+          "step": 1,
+          "default": 12,
+          "hint": "Short lookback used for the fast EMA."
+        },
+        {
+          "key": "slowLength",
+          "label": "Slow Window",
+          "type": "number",
+          "min": 10,
+          "max": 200,
+          "step": 1,
+          "default": 26,
+          "hint": "Long lookback used for the slow EMA."
+        }
+      ],
+      "limits": {
+        "free": 2,
+        "pro": 10
+      }
+    },
+    {
+      "kind": "volatility-indicator",
+      "label": "Volatility Channel",
+      "category": "indicator",
+      "description": "Measures ATR-based volatility to filter choppy regimes.",
+      "ports": {
+        "inputs": [
+          {
+            "id": "price",
+            "label": "Price Series",
+            "type": "timeseries",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "id": "volatility",
+            "label": "Volatility Signal",
+            "type": "timeseries"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "key": "window",
+          "label": "Window",
+          "type": "number",
+          "min": 5,
+          "max": 100,
+          "step": 1,
+          "default": 14,
+          "hint": "Number of periods used for ATR smoothing."
+        },
+        {
+          "key": "multiplier",
+          "label": "Band Multiplier",
+          "type": "number",
+          "min": 1,
+          "max": 5,
+          "step": 0.5,
+          "default": 2,
+          "hint": "Scales the ATR bands for breakout detection."
+        }
+      ],
+      "limits": {
+        "free": 1,
+        "pro": 5
+      }
+    },
+    {
+      "kind": "entry-condition",
+      "label": "Entry Condition",
+      "category": "logic",
+      "description": "Combines indicator thresholds to produce trade intents.",
+      "ports": {
+        "inputs": [
+          {
+            "id": "momentum",
+            "label": "Momentum",
+            "type": "timeseries",
+            "required": true
+          },
+          {
+            "id": "volatility",
+            "label": "Volatility",
+            "type": "timeseries",
+            "required": false
+          }
+        ],
+        "outputs": [
+          {
+            "id": "signal",
+            "label": "Trade Signal",
+            "type": "signal"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "key": "threshold",
+          "label": "Momentum Threshold",
+          "type": "number",
+          "min": -2,
+          "max": 2,
+          "step": 0.1,
+          "default": 0.5,
+          "hint": "Signals are emitted when momentum exceeds this value."
+        },
+        {
+          "key": "volatilityFloor",
+          "label": "Volatility Floor",
+          "type": "number",
+          "min": 0,
+          "max": 5,
+          "step": 0.1,
+          "default": 0.2,
+          "hint": "Optional filter to avoid trades in low-volatility regimes."
+        }
+      ],
+      "limits": {
+        "free": 2,
+        "pro": 10
+      }
+    },
+    {
+      "kind": "risk-controls",
+      "label": "Risk Controls",
+      "category": "risk",
+      "description": "Applies position sizing and stop logic before execution.",
+      "ports": {
+        "inputs": [
+          {
+            "id": "signal",
+            "label": "Trade Signal",
+            "type": "signal",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "id": "risk",
+            "label": "Risk Adjusted Intent",
+            "type": "risk"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "key": "maxRiskPerTrade",
+          "label": "Max Risk %",
+          "type": "number",
+          "min": 0.25,
+          "max": 5,
+          "step": 0.25,
+          "default": 1,
+          "hint": "Percentage of account equity risked per trade."
+        },
+        {
+          "key": "stopMultiple",
+          "label": "Stop Multiple",
+          "type": "number",
+          "min": 0.5,
+          "max": 5,
+          "step": 0.1,
+          "default": 2,
+          "hint": "Multiple of ATR used to place the stop."
+        }
+      ],
+      "limits": {
+        "free": 1,
+        "pro": 5
+      }
+    },
+    {
+      "kind": "paper-broker",
+      "label": "Paper Broker",
+      "category": "execution",
+      "description": "Routes validated intents to the paper trading engine.",
+      "ports": {
+        "inputs": [
+          {
+            "id": "risk",
+            "label": "Risk Adjusted Intent",
+            "type": "risk",
+            "required": true
+          }
+        ],
+        "outputs": [
+          {
+            "id": "orders",
+            "label": "Orders",
+            "type": "order"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "key": "venue",
+          "label": "Venue",
+          "type": "enum",
+          "options": ["paper-trading"],
+          "default": "paper-trading",
+          "hint": "Execution venue (paper only in beta)."
+        }
+      ],
+      "limits": {
+        "free": 1,
+        "pro": 3
+      }
+    }
+  ]
+}

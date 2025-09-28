@@ -1,25 +1,9 @@
+export * from "./canvas";
+
 export type WorkspaceConsent = {
   acceptedSimulationOnly: boolean;
   acceptedAt: string | null;
 };
-
-export interface StrategyNode {
-  id: string;
-  label: string;
-  type: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface StrategyEdge {
-  id: string;
-  source: string;
-  target: string;
-}
-
-export interface StrategyGraph {
-  nodes: StrategyNode[];
-  edges: StrategyEdge[];
-}
 
 export interface EducatorCallout {
   id: string;
@@ -47,13 +31,10 @@ export interface WorkspaceBootstrapPayload {
     description: string | null;
     createdAt: string | null;
   };
-  version: {
-    id: string;
-    versionName: string;
-    graph: StrategyGraph;
+  version: StrategyVersionSummary & {
     educatorCallouts: EducatorCallout[];
-    createdAt: string | null;
   };
   created: boolean;
   userId?: string;
 }
+import type { StrategyNode, StrategyVersionSummary } from "./canvas";

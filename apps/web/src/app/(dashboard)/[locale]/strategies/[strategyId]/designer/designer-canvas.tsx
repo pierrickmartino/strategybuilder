@@ -1,57 +1,67 @@
 "use client";
 
-import { useMemo } from "react";
-import { Background, Controls, ReactFlow } from "@xyflow/react";
+import { useEffect, useRef, useState } from "react";
+
+import type { StrategyVersionSummary } from "@strategybuilder/shared";
 
 import "@xyflow/react/dist/style.css";
 
+import { StrategyCanvas } from "@/components/canvas/StrategyCanvas";
+import { useStrategyCanvas } from "@/stores/useStrategyCanvas";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 
 type DesignerCanvasProps = {
-  strategyName: string;
+  strategyId: string;
 };
 
-export default function DesignerCanvas({ strategyName }: DesignerCanvasProps) {
-  const graph = useWorkspaceStore((state) => state.graph);
+export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
+  const strategy = useWorkspaceStore((state) => state.strategy);
+  const version = useWorkspaceStore((state) => state.version);
+  const loadVersion = useStrategyCanvas((state) => state.loadVersion);
+  const [currentVersion, setCurrentVersion] = useState<StrategyVersionSummary | null>(null);
+  const initialisedRef = useRef(false);
 
-  const nodes = useMemo(() => {
-    if (!graph) {
-      return [
-        { id: "start", position: { x: 0, y: 0 }, data: { label: strategyName } },
-        { id: "signal", position: { x: 0, y: 140 }, data: { label: "Check signal" } },
-        { id: "action", position: { x: 0, y: 280 }, data: { label: "Execute trade" } }
-      ];
+  useEffect(() => {
+    if (!strategy || !version) {
+      return;
     }
 
-    return graph.nodes.map((node, index) => ({
-      id: node.id,
-      position: { x: (index % 2) * 240, y: index * 140 },
-      data: { label: node.label }
-    }));
-  }, [graph, strategyName]);
+    if (!initialisedRef.current) {
+      const summary: StrategyVersionSummary = {
+        id: version.id,
+        version: version.version,
+        label: version.label,
+        graph: version.graph,
+        validationIssues: version.validationIssues,
+        createdAt: version.createdAt,
+        updatedAt: version.updatedAt
+      };
 
-  const edges = useMemo(() => {
-    if (!graph) {
-      return [
-        { id: "e1", source: "start", target: "signal", animated: true },
-        { id: "e2", source: "signal", target: "action" }
-      ];
+      loadVersion({
+        strategyId: strategy.id,
+        versionId: version.id,
+        graph: version.graph,
+        issues: version.validationIssues
+      });
+
+      setCurrentVersion(summary);
+      initialisedRef.current = true;
     }
+  }, [loadVersion, strategy, version]);
 
-    return graph.edges.map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      animated: true
-    }));
-  }, [graph]);
+  if (!strategy || !currentVersion) {
+    return (
+      <div className="flex min-h-[420px] flex-1 items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/60 text-sm text-slate-400">
+        Loading canvas…
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-full w-full flex-1 min-h-[420px] overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60">
-      <ReactFlow nodes={nodes} edges={edges} fitView style={{ width: "100%", height: "100%" }}>
-        <Background className="!bg-transparent" />
-        <Controls className="!border-0 !bg-slate-900/80" />
-      </ReactFlow>
-    </div>
+    <StrategyCanvas
+      strategyId={strategy.id}
+      versionId={currentVersion.id}
+      onVersionSwitch={(next) => setCurrentVersion(next)}
+    />
   );
 }

@@ -6,7 +6,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routers import auth, health, workspaces
+from app.api.routers import auth, health, strategy_versions, workspaces
 from app.db.base import Base
 from app.db.session import get_engine
 
@@ -42,6 +42,7 @@ def create_app() -> FastAPI:
   app.include_router(health.router, prefix=API_PREFIX)
   app.include_router(auth.router, prefix=API_PREFIX)
   app.include_router(workspaces.router, prefix=API_PREFIX)
+  app.include_router(strategy_versions.router, prefix=API_PREFIX)
 
   return app
 
