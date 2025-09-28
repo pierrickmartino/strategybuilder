@@ -11,8 +11,10 @@ import {
   type ReactFlowInstance
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { shallow } from "zustand/shallow";
 
 import {
+  createPrefixedId,
   getBlockDefinition,
   type CanvasValidationIssue,
   type StrategyGraph,
@@ -154,9 +156,21 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
   const connectNodes = useStrategyCanvas((state) => state.connectNodes);
   const removeEdge = useStrategyCanvas((state) => state.removeEdge);
   const markSaved = useStrategyCanvas((state) => state.markSaved);
+  const undo = useStrategyCanvas((state) => state.undo);
+  const redo = useStrategyCanvas((state) => state.redo);
   const setValidationResult = useStrategyCanvas((state) => state.setValidationResult);
   const setValidationError = useStrategyCanvas((state) => state.setValidationError);
   const markValidationPending = useStrategyCanvas((state) => state.markValidationPending);
+  const { canUndo, canRedo } = useStrategyCanvas(
+    (state) => {
+      const stack = state.history[versionId] ?? { past: [], future: [] };
+      return {
+        canUndo: stack.past.length > 0,
+        canRedo: stack.future.length > 0
+      };
+    },
+    shallow
+  );
 
   const versionsQuery = useStrategyVersions(strategyId);
   const autosaveMutation = useAutosaveStrategyVersion(strategyId);
@@ -272,7 +286,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
       if (!definition) {
         return;
       }
-      const id = `${kind}-${crypto.randomUUID().slice(0, 8)}`;
+      const id = createPrefixedId(kind);
       const parameters = Object.fromEntries(
         definition.parameters.map((parameter) => [parameter.key, parameter.default])
       );
@@ -311,6 +325,42 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
         setValidationError(versionId, error.message);
       });
   }, [graph, markValidationPending, setValidationError, setValidationResult, validateMutation, versionId]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isEditableTarget =
+        target?.isContentEditable ||
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.tagName === "SELECT";
+
+      if (isEditableTarget) {
+        return;
+      }
+
+      const isModifierPressed = event.metaKey || event.ctrlKey;
+      if (!isModifierPressed) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      if (key === "z" && !event.shiftKey && canUndo) {
+        event.preventDefault();
+        undo(versionId);
+        return;
+      }
+
+      const redoRequested = (key === "z" && event.shiftKey) || key === "y";
+      if (redoRequested && canRedo) {
+        event.preventDefault();
+        redo(versionId);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [canRedo, canUndo, redo, undo, versionId]);
 
   useEffect(() => {
     if (!graph || !dirty || autosaveMutation.isPending || !versionId) {
@@ -432,6 +482,26 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
               {revertNotice && <span className="text-emerald-300">{revertNotice}</span>}
             </div>
             <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => undo(versionId)}
+                disabled={!canUndo}
+                data-testid="canvas-undo"
+                className="rounded-md border border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:border-sky-500 hover:text-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Undo (⌘Z / Ctrl+Z)"
+              >
+                Undo
+              </button>
+              <button
+                type="button"
+                onClick={() => redo(versionId)}
+                disabled={!canRedo}
+                data-testid="canvas-redo"
+                className="rounded-md border border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:border-sky-500 hover:text-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Redo (Shift+⌘Z / Ctrl+Y)"
+              >
+                Redo
+              </button>
               <button
                 type="button"
                 onClick={handleValidate}

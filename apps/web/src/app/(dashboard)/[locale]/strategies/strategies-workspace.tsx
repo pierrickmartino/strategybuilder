@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
+import { generateIdSegment } from "@strategybuilder/shared";
+
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { useWorkspaceBootstrap } from "@/hooks/use-workspace-bootstrap";
 import { useWorkspaceStore } from "@/stores/workspace-store";
@@ -84,7 +86,7 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
   const [notes, setNotes] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
-    const reset = () => {
+  const reset = () => {
     setEditingId(null);
     setName("");
     setNotes("");
@@ -95,7 +97,7 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
     if (!name.trim()) return;
 
     const next: Strategy = {
-      id: editingId ?? crypto.randomUUID(),
+      id: editingId ?? generateIdSegment(12),
       name: name.trim(),
       notes: notes.trim()
     };

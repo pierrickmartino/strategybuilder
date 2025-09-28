@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -6,10 +6,36 @@ import type { StrategyVersionSummary } from "@strategybuilder/shared";
 
 import { useStrategyCanvas } from "@/stores/useStrategyCanvas";
 
-vi.mock("@xyflow/react", () => {
+vi.mock("@xyflow/react", async () => {
+  const React = await import("react");
+  const { useEffect } = React;
+
+  const ReactFlowProvider = ({ children }: { children: ReactNode }) => (
+    <div data-testid="rf-provider">{children}</div>
+  );
+
+  const ReactFlow = ({
+    children,
+    onInit
+  }: {
+    children: ReactNode;
+    onInit?: (instance: { project: (point: { x: number; y: number }) => { x: number; y: number } }) => void;
+  }) => {
+    useEffect(() => {
+      if (!onInit) {
+        return;
+      }
+      onInit({
+        project: (point: { x: number; y: number }) => point
+      });
+    }, [onInit]);
+
+    return <div data-testid="rf-instance">{children}</div>;
+  };
+
   return {
-    ReactFlowProvider: ({ children }: { children: ReactNode }) => <div data-testid="rf-provider">{children}</div>,
-    ReactFlow: ({ children }: { children: ReactNode }) => <div data-testid="rf-instance">{children}</div>,
+    ReactFlowProvider,
+    ReactFlow,
     Background: () => null,
     Controls: () => null
   };
@@ -156,5 +182,91 @@ describe("StrategyCanvas integration", () => {
 
     await waitFor(() => expect(revertSpy).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByText(/Restored version/i)).toBeInTheDocument());
+  });
+
+  it("exposes undo/redo controls wired to history", async () => {
+    const onVersionSwitch = vi.fn();
+    useStrategyCanvas.getState().moveNode("version-1", "market", { x: 24, y: 18 });
+
+    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+
+    const undoButton = screen.getByTestId("canvas-undo");
+    expect(undoButton).not.toBeDisabled();
+
+    fireEvent.click(undoButton);
+
+    await waitFor(() => {
+      const graph = useStrategyCanvas.getState().graphs["version-1"];
+      expect(graph.nodes[0].position).toEqual({ x: 0, y: 0 });
+    });
+
+    const redoButton = screen.getByTestId("canvas-redo");
+    await waitFor(() => expect(redoButton).not.toBeDisabled());
+
+    fireEvent.click(redoButton);
+
+    await waitFor(() => {
+      const graph = useStrategyCanvas.getState().graphs["version-1"];
+      expect(graph.nodes[0].position).toEqual({ x: 24, y: 18 });
+    });
+  });
+
+  it("supports keyboard shortcuts for undo and redo", async () => {
+    const onVersionSwitch = vi.fn();
+    useStrategyCanvas.getState().moveNode("version-1", "market", { x: 12, y: 9 });
+
+    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "z", metaKey: true }));
+    });
+
+    await waitFor(() => {
+      const graph = useStrategyCanvas.getState().graphs["version-1"];
+      expect(graph.nodes[0].position).toEqual({ x: 0, y: 0 });
+    });
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "z", shiftKey: true, metaKey: true }));
+    });
+
+    await waitFor(() => {
+      const graph = useStrategyCanvas.getState().graphs["version-1"];
+      expect(graph.nodes[0].position).toEqual({ x: 12, y: 9 });
+    });
+  });
+
+  it("falls back to generated IDs when crypto.randomUUID is unavailable", async () => {
+    const cryptoGlobal = globalThis.crypto as { randomUUID?: (() => string) | undefined };
+    const originalRandomUUID = cryptoGlobal.randomUUID;
+    cryptoGlobal.randomUUID = undefined;
+
+    try {
+      const onVersionSwitch = vi.fn();
+      render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+
+      const surface = screen.getByTestId("canvas-surface");
+      Object.defineProperty(surface, "getBoundingClientRect", {
+        value: () => ({ left: 0, top: 0, right: 100, bottom: 100, width: 100, height: 100 }),
+        configurable: true
+      });
+
+      const dataTransfer = {
+        getData: (type: string) => (type === "application/x-canvas-block" ? "market-data" : "")
+      };
+
+      fireEvent.drop(surface, {
+        clientX: 40,
+        clientY: 40,
+        dataTransfer
+      });
+
+      await waitFor(() => {
+        const graph = useStrategyCanvas.getState().graphs["version-1"];
+        expect(graph.nodes.some((node) => node.id.startsWith("market-data-"))).toBe(true);
+      });
+    } finally {
+      cryptoGlobal.randomUUID = originalRandomUUID;
+    }
   });
 });
