@@ -173,3 +173,25 @@ async def test_bootstrap_records_audit_timestamp(caplog):
     assert record.workspace_created_at == payload["workspace"]["createdAt"]
     assert record.workspace_created is True
     assert record.user_id == actor.id
+
+
+async def test_sync_user_reuses_existing_identifier_when_subject_rotates():
+  session_factory = await _create_session_factory()
+
+  async with session_factory() as session:
+    original_actor = _build_authenticated_user()
+    await sync_user_from_claims(session, original_actor)
+
+    workspace, _, _, created = await get_or_create_demo_workspace(session, original_actor)
+    assert created is True
+
+    rotated_actor = _build_authenticated_user()
+    rotated_subject = rotated_actor.id
+    await sync_user_from_claims(session, rotated_actor)
+
+    assert rotated_subject != original_actor.id
+    assert rotated_actor.id == original_actor.id
+
+    workspace_again, _, _, created_again = await get_or_create_demo_workspace(session, rotated_actor)
+    assert created_again is False
+    assert str(workspace_again.id) == str(workspace.id)
