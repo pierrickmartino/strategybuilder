@@ -55,8 +55,6 @@ export type CanvasBlockCatalog = {
   blocks: CanvasBlockDefinition[];
 };
 
-const rawCatalog = rawDefinitions as CanvasBlockCatalog;
-
 export type StrategyNodePosition = {
   x: number;
   y: number;
