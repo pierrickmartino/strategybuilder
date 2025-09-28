@@ -1,3 +1,5 @@
+import type { StrategyNode, StrategyVersionSummary } from "./canvas";
+
 export * from "./canvas";
 
 export type WorkspaceConsent = {
@@ -37,4 +39,3 @@ export interface WorkspaceBootstrapPayload {
   created: boolean;
   userId?: string;
 }
-import type { StrategyNode, StrategyVersionSummary } from "./canvas";
