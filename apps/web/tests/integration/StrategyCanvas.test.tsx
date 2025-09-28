@@ -124,6 +124,21 @@ describe("StrategyCanvas integration", () => {
     await waitFor(() => expect(screen.getByText(/issues detected/i)).toBeInTheDocument());
   });
 
+  it("surfaces global validation issues without node context", async () => {
+    const onVersionSwitch = vi.fn();
+    validateSpy.mockResolvedValueOnce([
+      { nodeId: null, code: "quota_exceeded", message: "Quota exceeded for broker nodes", severity: "error" }
+    ]);
+
+    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^validate$/i }));
+
+    await waitFor(() => expect(validateSpy).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByTestId("canvas-global-issues")).toBeInTheDocument());
+    expect(screen.getByText(/quota exceeded/i)).toBeInTheDocument();
+  });
+
   it("invokes callbacks when loading versions", async () => {
     const onVersionSwitch = vi.fn();
     render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
@@ -131,5 +146,15 @@ describe("StrategyCanvas integration", () => {
     fireEvent.click(screen.getByRole("button", { name: /Load/i }));
 
     await waitFor(() => expect(onVersionSwitch).toHaveBeenCalled());
+  });
+
+  it("shows revert success feedback", async () => {
+    const onVersionSwitch = vi.fn();
+    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Revert/i }));
+
+    await waitFor(() => expect(revertSpy).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText(/Restored version/i)).toBeInTheDocument());
   });
 });

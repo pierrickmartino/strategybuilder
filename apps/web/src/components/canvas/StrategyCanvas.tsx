@@ -140,6 +140,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [revertingId, setRevertingId] = useState<string | null>(null);
+  const [revertNotice, setRevertNotice] = useState<string | null>(null);
 
   const graph = useStrategyCanvas((state) => state.graphs[versionId]);
   const validationState = useStrategyCanvas((state) => state.validation[versionId]);
@@ -163,6 +164,10 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
   const revertMutation = useRevertStrategyVersion(strategyId);
 
   const issuesByNode = useMemo(() => buildIssuesMap(validationState?.issues ?? []), [validationState]);
+  const globalIssues = useMemo(
+    () => (validationState?.issues ?? []).filter((issue) => !issue.nodeId),
+    [validationState]
+  );
 
   const nodes = useMemo(() => {
     if (!graph) {
@@ -372,12 +377,21 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
         });
         setSelectedNodeId(null);
         onVersionSwitch(created);
+        setRevertNotice(`Restored version ${created.label}`);
       } finally {
         setRevertingId(null);
       }
     },
     [loadVersion, onVersionSwitch, revertMutation, strategyId]
   );
+
+  useEffect(() => {
+    if (!revertNotice) {
+      return;
+    }
+    const timeout = window.setTimeout(() => setRevertNotice(null), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [revertNotice]);
 
   const selectedNode = useMemo(() => {
     if (!graph || !selectedNodeId) {
@@ -415,6 +429,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
               {dirty && <span className="text-slate-200">Unsaved changes</span>}
               {autosaveMutation.isPending && <span className="text-slate-200">Saving…</span>}
               {validationMessage && <span className="text-slate-400">{validationMessage}</span>}
+              {revertNotice && <span className="text-emerald-300">{revertNotice}</span>}
             </div>
             <div className="flex gap-2">
               <button
@@ -451,6 +466,27 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
               </ReactFlow>
             </div>
             <div className="flex w-80 shrink-0 flex-col gap-4">
+              {globalIssues.length > 0 && (
+                <section
+                  className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-100 shadow-sm"
+                  data-testid="canvas-global-issues"
+                >
+                  <header className="mb-2 flex items-center justify-between gap-2 text-xs uppercase tracking-wide">
+                    <span className="font-semibold">Validation blockers</span>
+                    <span className="text-rose-300">
+                      {globalIssues.length} {globalIssues.length === 1 ? "issue" : "issues"}
+                    </span>
+                  </header>
+                  <ul className="space-y-2 text-rose-100">
+                    {globalIssues.map((issue, index) => (
+                      <li key={`${issue.code}-${index}`} className="leading-snug">
+                        <div className="text-xs font-semibold text-rose-200">{issue.code}</div>
+                        <p className="text-sm">{issue.message}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
               <CanvasInspector node={selectedNode} onUpdate={handleParameterUpdate} />
               <VersionHistory
                 versions={versionsQuery.data ?? []}

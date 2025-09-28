@@ -16,7 +16,6 @@ test.describe("Strategy canvas designer", () => {
 
     // Open version history and revert to the seeded version
     await page.getByRole("button", { name: "Revert" }).first().click();
-    await expect(page.getByText(/Restored/i)).toBeVisible();
+    await expect(page.getByText(/Restored version/i)).toBeVisible();
   });
 });
-
