@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routers import auth, health, strategy_versions, workspaces
 from app.db.base import Base
 from app.db.session import get_engine
+from app.db.schema import ensure_strategy_versions_schema
 
 # Ensure models are imported for metadata generation
 from app import models as _  # noqa: F401  # pylint: disable=unused-import
@@ -24,6 +25,7 @@ async def lifespan(_app: FastAPI):
   engine = get_engine()
   async with engine.begin() as connection:
     await connection.run_sync(Base.metadata.create_all)
+    await ensure_strategy_versions_schema(connection)
   yield
 
 
