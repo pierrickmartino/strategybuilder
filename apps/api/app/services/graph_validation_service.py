@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any
 
 from app.data.block_definitions import BlockDefinition, BlockParameterDefinition, load_block_definitions
