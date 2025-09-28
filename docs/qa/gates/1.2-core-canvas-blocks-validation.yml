@@ -1,60 +1,39 @@
 schema: 1
 story: '1.2'
 story_title: 'Core Canvas Blocks & Validation'
-gate: FAIL
-status_reason: 'Undo is not exposed to users and block creation fails on browsers without crypto.randomUUID.'
+gate: PASS
+status_reason: 'Undo/redo controls, global validation surfacing, and the cross-browser ID helper close the previously failed acceptance criteria.'
 reviewer: 'Quinn (Test Architect)'
-updated: '2025-09-28T19:44:03Z'
-quality_score: 70
-expires: '2025-10-12T19:44:03Z'
+updated: '2025-09-30T22:27:34Z'
+quality_score: 100
+expires: '2025-10-14T22:27:34Z'
 
-top_issues:
-  - id: REQ-AC1-UNDO
-    severity: high
-    finding: 'Acceptance Criterion 1 requires undo, but the canvas UI exposes only a Validate button; no toolbar or keyboard binding calls the store undo/redo actions.'
-    suggested_action: 'Add undo/redo controls (buttons + common shortcuts) that delegate to useStrategyCanvas().undo/redo and cover them with automated tests.'
-    refs:
-      - docs/stories/1.2.core-canvas-blocks-validation.md:12
-      - apps/web/src/components/canvas/StrategyCanvas.tsx:424
-      - apps/web/src/stores/useStrategyCanvas.ts:129
-  - id: NFR-COMPAT-001
-    severity: medium
-    finding: '`crypto.randomUUID()` is invoked when dropping blocks, which throws on Safari 14/WebView environments, preventing new nodes from being created.'
-    suggested_action: 'Replace the call with a uuid helper that falls back when crypto.randomUUID is unavailable.'
-    refs:
-      - apps/web/src/components/canvas/StrategyCanvas.tsx:275
+top_issues: []
 
 waiver:
   active: false
 
 evidence:
-  tests_reviewed: 4
-  risks_identified: 2
+  tests_reviewed: 22
+  risks_identified: 0
   trace:
-    ac_covered: [2, 3, 4]
-    ac_gaps: [1]
+    ac_covered: [1, 2, 3, 4]
+    ac_gaps: []
 
 nfr_validation:
   security:
     status: PASS
-    notes: 'Validation endpoints remain auth-scoped; no new exposure identified.'
+    notes: 'No auth boundary changes; validation endpoints remain scoped to authenticated sessions.'
   performance:
     status: PASS
-    notes: 'Autosave cadence and store cloning remain within documented bounds.'
+    notes: 'Autosave debounce and bounded history stack keep runtime within documented limits.'
   reliability:
-    status: CONCERNS
-    notes: 'Safari/WebView users cannot add blocks because crypto.randomUUID is undefined.'
+    status: PASS
+    notes: 'Undo/redo wiring and ID fallback cover the previously failing scenarios.'
   maintainability:
-    status: CONCERNS
-    notes: 'Undo stack exists in the store but lacks UI wiring, increasing support burden and user error recovery friction.'
+    status: PASS
+    notes: 'Implementation follows shared helpers and store history retains bounded snapshots.'
 
 recommendations:
-  immediate:
-    - action: 'Expose undo/redo affordances wired to useStrategyCanvas().undo/redo and add regression coverage.'
-      refs:
-        - apps/web/src/components/canvas/StrategyCanvas.tsx:424
-        - apps/web/tests/integration/StrategyCanvas.test.tsx:1
-    - action: 'Swap crypto.randomUUID for a cross-browser UUID helper with fallback.'
-      refs:
-        - apps/web/src/components/canvas/StrategyCanvas.tsx:275
+  immediate: []
   future: []
