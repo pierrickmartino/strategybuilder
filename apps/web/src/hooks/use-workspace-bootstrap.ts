@@ -27,7 +27,7 @@ async function fetchWorkspaceBootstrap(token: string): Promise<WorkspaceBootstra
 
 export function useWorkspaceBootstrap() {
   const supabase = useSupabaseClient();
-  const { session } = useSessionContext();
+  const { session, isLoading: sessionLoading } = useSessionContext();
   const hydrate = useWorkspaceStore((state) => state.hydrateFromBootstrap);
   const hydrated = useWorkspaceStore((state) => state.hydrated);
 
@@ -46,7 +46,7 @@ export function useWorkspaceBootstrap() {
 
   return useQuery<WorkspaceBootstrapPayload>({
     queryKey: ["workspace", "bootstrap"],
-    enabled: Boolean(session) && !hydrated,
+    enabled: !hydrated && !sessionLoading,
     queryFn,
     staleTime: 5 * 60 * 1000,
     onSuccess: hydrate
