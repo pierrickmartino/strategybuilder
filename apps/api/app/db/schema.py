@@ -48,6 +48,15 @@ async def ensure_strategy_versions_schema(connection: AsyncConnection) -> None:
   existing = await _get_existing_columns(connection, "strategy_versions")
   statements: list[str] = []
 
+  if "graph_json" not in existing:
+    if "graph" in existing:
+      statements.append("ALTER TABLE strategy_versions RENAME COLUMN graph TO graph_json")
+    else:
+      statements.append(
+        "ALTER TABLE strategy_versions ADD COLUMN graph_json JSONB NOT NULL DEFAULT '{}'::jsonb"
+      )
+      statements.append("ALTER TABLE strategy_versions ALTER COLUMN graph_json DROP DEFAULT")
+
   if "version" not in existing:
     statements.append(
       "ALTER TABLE strategy_versions ADD COLUMN version INTEGER NOT NULL DEFAULT 1"
@@ -67,6 +76,9 @@ async def ensure_strategy_versions_schema(connection: AsyncConnection) -> None:
     statements.append(
       "ALTER TABLE strategy_versions ADD COLUMN educator_callouts JSONB NOT NULL DEFAULT '[]'::jsonb"
     )
+
+  if "notes" not in existing:
+    statements.append("ALTER TABLE strategy_versions ADD COLUMN notes TEXT")
 
   if "validation_issues" not in existing:
     statements.append(
