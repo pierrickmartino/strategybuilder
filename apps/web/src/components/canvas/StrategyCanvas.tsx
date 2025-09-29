@@ -104,7 +104,7 @@ function VersionHistory({
             <li
               key={version.id}
               className={`rounded-xl border px-3 py-2 ${
-                active ? "border-sky-500/50 bg-sky-500/10" : "border-slate-800 bg-slate-900/50"
+                active ? "border-orange-500/50 bg-orange-500/10" : "border-slate-800 bg-slate-900/50"
               }`}
             >
               <div className="flex items-center justify-between gap-2">
@@ -116,7 +116,7 @@ function VersionHistory({
                   <button
                     type="button"
                     onClick={() => onLoad(version)}
-                    className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:border-sky-500 hover:text-sky-300"
+                    className="rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-200 hover:border-orange-500 hover:text-orange-300"
                   >
                     Load
                   </button>
@@ -487,7 +487,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
                 onClick={() => undo(versionId)}
                 disabled={!canUndo}
                 data-testid="canvas-undo"
-                className="rounded-md border border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:border-sky-500 hover:text-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md border border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:border-orange-500 hover:text-orange-300 disabled:cursor-not-allowed disabled:opacity-50"
                 title="Undo (⌘Z / Ctrl+Z)"
               >
                 Undo
@@ -497,7 +497,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
                 onClick={() => redo(versionId)}
                 disabled={!canRedo}
                 data-testid="canvas-redo"
-                className="rounded-md border border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:border-sky-500 hover:text-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md border border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:border-orange-500 hover:text-orange-300 disabled:cursor-not-allowed disabled:opacity-50"
                 title="Redo (Shift+⌘Z / Ctrl+Y)"
               >
                 Redo
@@ -505,7 +505,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
               <button
                 type="button"
                 onClick={handleValidate}
-                className="rounded-md border border-sky-500 px-3 py-1.5 text-sm font-medium text-sky-200 transition hover:bg-sky-500/10"
+                className="rounded-md border border-orange-500 px-3 py-1.5 text-sm font-medium text-orange-200 transition hover:bg-orange-500/10"
               >
                 Validate
               </button>

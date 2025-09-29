@@ -49,7 +49,7 @@ export default function StrategyDesignerShell({
         </div>
         <Link
           href={`/${locale}/strategies`}
-          className="text-sm text-sky-400 transition hover:text-sky-300"
+          className="text-sm text-orange-400 transition hover:text-orange-300"
         >
           {dictionary.backAction}
         </Link>

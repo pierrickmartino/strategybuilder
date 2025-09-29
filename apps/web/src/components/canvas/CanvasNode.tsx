@@ -16,7 +16,7 @@ export function CanvasNode({ data, selected }: NodeProps<CanvasNodeData>) {
   return (
     <div
       className={`min-w-[160px] rounded-2xl border px-4 py-3 shadow-lg transition focus:outline-none focus-visible:ring-2 ${
-        selected ? "border-sky-400 ring-2 ring-sky-400/40" : "border-slate-700"
+        selected ? "border-orange-400 ring-2 ring-orange-400/40" : "border-slate-700"
       } ${hasErrors ? "bg-rose-500/10" : hasWarnings ? "bg-amber-500/10" : "bg-slate-900/90"}`}
     >
       <div className="flex items-center justify-between gap-2">

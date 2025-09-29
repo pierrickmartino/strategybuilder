@@ -23,7 +23,7 @@ export default async function HomePage({ params }: HomePageProps) {
   return (
     <main className="flex min-h-screen flex-col gap-16 bg-slate-950 px-6 pb-20 pt-24 text-slate-100">
       <section className="mx-auto flex w-full max-w-4xl flex-col items-center text-center">
-        <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-1 text-sm font-semibold uppercase tracking-wide text-sky-300">
+        <span className="rounded-full border border-orange-500/40 bg-orange-500/10 px-4 py-1 text-sm font-semibold uppercase tracking-wide text-orange-300">
           {hero.badge}
         </span>
         <h1 className="mt-6 text-5xl font-bold sm:text-6xl">{hero.heading}</h1>
@@ -31,7 +31,7 @@ export default async function HomePage({ params }: HomePageProps) {
         <div className="mt-8 flex flex-col items-center gap-2">
           <Link
             href={`/${locale}/login`}
-            className="rounded-full border border-sky-500/40 bg-sky-500/10 px-5 py-2 text-sm font-semibold text-sky-200 transition hover:bg-sky-500 hover:text-slate-950"
+            className="rounded-full border border-orange-500/40 bg-orange-500/10 px-5 py-2 text-sm font-semibold text-orange-200 transition hover:bg-orange-500 hover:text-slate-950"
           >
             {hero.cta}
           </Link>
@@ -56,7 +56,7 @@ export default async function HomePage({ params }: HomePageProps) {
               key={tier.name}
               className={`rounded-xl border p-5 ${
                 tier.highlighted
-                  ? "border-sky-500/40 bg-sky-500/10"
+                  ? "border-orange-500/40 bg-orange-500/10"
                   : "border-slate-800 bg-slate-900/60"
               }`}
             >

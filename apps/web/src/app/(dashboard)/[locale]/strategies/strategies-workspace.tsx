@@ -150,7 +150,7 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 required
-                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
                 placeholder={dictionary.namePlaceholder}
               />
             </div>
@@ -162,14 +162,14 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
                 id="notes"
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
-                className="min-h-[96px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                className="min-h-[96px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
                 placeholder={dictionary.notesPlaceholder}
               />
             </div>
             <div className="flex items-center gap-3">
               <button
                 type="submit"
-                className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400"
+                className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-orange-400"
               >
                 {editingId ? dictionary.saveAction : dictionary.createAction}
               </button>
@@ -221,7 +221,7 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
                   <div className="flex flex-wrap gap-2 text-sm">
                     <Link
                       href={`/${locale}/strategies/${strategy.id}/designer`}
-                      className="rounded-lg border border-sky-500 px-3 py-1 text-sky-300 hover:bg-sky-500/10"
+                      className="rounded-lg border border-orange-500 px-3 py-1 text-orange-300 hover:bg-orange-500/10"
                     >
                       {dictionary.designerAction}
                     </Link>
@@ -232,7 +232,7 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
                         setName(strategy.name);
                         setNotes(strategy.notes);
                       }}
-                      className="rounded-lg border border-slate-700 px-3 py-1 hover:border-sky-400 hover:text-sky-300"
+                      className="rounded-lg border border-slate-700 px-3 py-1 hover:border-orange-400 hover:text-orange-300"
                     >
                       {dictionary.editAction}
                     </button>

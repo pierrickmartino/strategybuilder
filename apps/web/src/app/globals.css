@@ -11,5 +11,5 @@ body {
 }
 
 a {
-  @apply text-sky-400 hover:text-sky-300 transition;
+  @apply text-orange-400 hover:text-orange-300 transition;
 }

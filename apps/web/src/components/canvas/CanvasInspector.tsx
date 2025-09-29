@@ -20,7 +20,7 @@ function renderInput(
         <input
           type="number"
           id={inputId}
-          className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-sky-400 focus:outline-none"
+          className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-orange-400 focus:outline-none"
           value={value as number}
           min={parameter.min}
           max={parameter.max}
@@ -32,7 +32,7 @@ function renderInput(
       return (
         <select
           id={inputId}
-          className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-sky-400 focus:outline-none"
+          className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-orange-400 focus:outline-none"
           value={value as string}
           onChange={(event) => onChange(event.target.value)}
         >
@@ -49,7 +49,7 @@ function renderInput(
           <input
             type="checkbox"
             id={inputId}
-            className="rounded border-slate-600 bg-slate-900 text-sky-400"
+            className="rounded border-slate-600 bg-slate-900 text-orange-400"
             checked={Boolean(value)}
             onChange={(event) => onChange(event.target.checked)}
           />
@@ -61,7 +61,7 @@ function renderInput(
         <input
           type="text"
           id={inputId}
-          className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-sky-400 focus:outline-none"
+          className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-orange-400 focus:outline-none"
           value={value as string}
           onChange={(event) => onChange(event.target.value)}
         />
