@@ -1,0 +1,55 @@
+schema: 1
+story: '1.3'
+story_title: 'Guided Onboarding & Template Library'
+gate: FAIL
+status_reason: 'Client analytics payload uses camelCase keys that the FastAPI schema rejects, so onboarding events never reach Timescale and AC4 remains unsatisfied.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-30T18:49:34Z'
+quality_score: 30
+expires: '2025-10-14T18:49:34Z'
+
+top_issues:
+  - id: QA-001
+    severity: critical
+    summary: 'POST /analytics/onboarding responds 422 because the client submits stepId/occurredAt instead of snake_case keys, preventing activation metrics from being recorded.'
+    refs:
+      - apps/web/src/services/analytics.ts:14
+      - apps/api/app/api/schemas/analytics.py:14
+    suggested_owner: dev
+
+waiver:
+  active: false
+
+evidence:
+  tests_reviewed: 8
+  risks_identified: 1
+  trace:
+    ac_covered: [1, 2, 3]
+    ac_gaps: [4]
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'Endpoints remain gated behind compliance consent and reuse existing auth dependencies.'
+  performance:
+    status: PASS
+    notes: 'Static template/education payloads and queued analytics flushing keep within documented budgets.'
+  reliability:
+    status: FAIL
+    notes: 'Analytics ingestion rejects payload casing, so onboarding progress cannot be monitored in production.'
+  maintainability:
+    status: PASS
+    notes: 'Implementation aligns with shared stores/services patterns once the payload schema is corrected.'
+
+recommendations:
+  immediate:
+    - action: 'Align client and API schemas for onboarding analytics (either camelCase->snake transformation client-side or schema aliases server-side).'
+      refs:
+        - apps/web/src/services/analytics.ts
+        - apps/api/app/api/schemas/analytics.py
+      suggested_owner: dev
+  future:
+    - action: 'Add a contract test that exercises POST /analytics/onboarding end-to-end to guard against payload drift.'
+      refs:
+        - apps/api/tests/test_onboarding_features.py
+      suggested_owner: dev
