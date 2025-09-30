@@ -146,7 +146,7 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
           <p className="text-sm text-slate-400">{dictionary.description}</p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div className="grid gap-6 items-start g:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
           <OnboardingChecklist
             templateHref={templateHref}
             runBacktestHref={runBacktestHref}
