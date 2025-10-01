@@ -2,6 +2,8 @@ import type { StrategyNode, StrategyVersionSummary } from "./canvas";
 
 export * from "./canvas";
 export * from "./id";
+export * from "./templates";
+export * from "./education";
 
 export type WorkspaceConsent = {
   acceptedSimulationOnly: boolean;

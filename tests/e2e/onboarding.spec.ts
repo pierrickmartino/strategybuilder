@@ -29,7 +29,17 @@ async function verifyAuditEvent(client: Client, userId: string, expectedWorkspac
   expect(event.workspace_id).toBe(expectedWorkspaceId);
 }
 
+async function verifyComplianceEvent(client: Client, userId: string, eventType: string) {
+  const result = await client.query(
+    "SELECT event_type, payload, created_at FROM compliance_events WHERE user_id = $1 AND event_type = $2 ORDER BY created_at DESC LIMIT 1",
+    [userId, eventType]
+  );
+  expect(result.rowCount).toBe(1);
+  return result.rows[0];
+}
+
 async function cleanupBootstrapArtifacts(client: Client, userId: string) {
+  await client.query("DELETE FROM onboarding_events WHERE user_id = $1", [userId]);
   await client.query("DELETE FROM compliance_events WHERE user_id = $1", [userId]);
   await client.query(
     "DELETE FROM strategy_versions WHERE strategy_id IN (SELECT id FROM strategies WHERE workspace_id IN (SELECT id FROM workspaces WHERE user_id = $1))",
@@ -95,6 +105,61 @@ test.describe("Onboarding bootstrap audit trail", () => {
 
     try {
       await verifyAuditEvent(client, userId, payload.workspace.id);
+
+      const templatesResponse = await request.get(`${API_BASE_URL}/templates`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      expect(templatesResponse.ok()).toBeTruthy();
+      const templatesPayload = await templatesResponse.json();
+      expect(Array.isArray(templatesPayload.templates)).toBe(true);
+      expect(templatesPayload.templates.length).toBeGreaterThanOrEqual(3);
+      const templateId = templatesPayload.templates[0].id as string;
+
+      const templateEvent = await verifyComplianceEvent(client, userId, "template.visibility");
+      const templateCount = Number(templateEvent.payload.count ?? 0);
+      expect(templateCount).toBeGreaterThanOrEqual(3);
+
+      const educationResponse = await request.get(`${API_BASE_URL}/education/onboarding`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      expect(educationResponse.ok()).toBeTruthy();
+      const educationEvent = await verifyComplianceEvent(client, userId, "education.delivery");
+      const educationCount = Number(educationEvent.payload.count ?? 0);
+      expect(educationCount).toBeGreaterThanOrEqual(1);
+
+      const analyticsPayload = {
+        events: [
+          {
+            stepId: "load-template",
+            status: "completed",
+            occurredAt: new Date().toISOString(),
+            properties: { templateId }
+          }
+        ]
+      };
+
+      const analyticsResponse = await request.post(`${API_BASE_URL}/analytics/onboarding`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        data: analyticsPayload
+      });
+      expect(analyticsResponse.status()).toBe(202);
+
+      const analyticsRows = await client.query(
+        "SELECT step_id, status, properties->>'templateId' AS template_id FROM onboarding_events WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
+        [userId]
+      );
+      expect(analyticsRows.rowCount).toBe(1);
+      const analyticsEvent = analyticsRows.rows[0];
+      expect(analyticsEvent.step_id).toBe("load-template");
+      expect(analyticsEvent.status).toBe("completed");
+      expect(analyticsEvent.template_id).toBe(templateId);
     } finally {
       await cleanupBootstrapArtifacts(client, userId);
       await client.end();

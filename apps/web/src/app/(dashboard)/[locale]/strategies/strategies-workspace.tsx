@@ -3,11 +3,16 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 import { generateIdSegment } from "@strategybuilder/shared";
 
+import { EducationHub } from "@/components/onboarding/EducationHub";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
+import { TemplateLibrary } from "@/components/onboarding/TemplateLibrary";
 import type { Dictionary } from "@/i18n/get-dictionary";
 import { useWorkspaceBootstrap } from "@/hooks/use-workspace-bootstrap";
+import { useOnboardingProgress } from "@/stores/onboarding-progress";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 
 const metricTemplates = [
@@ -47,8 +52,23 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
   } = useWorkspaceBootstrap();
   const workspace = useWorkspaceStore((state) => state.workspace);
   const strategySummary = useWorkspaceStore((state) => state.strategy);
-  const graph = useWorkspaceStore((state) => state.graph);
   const callouts = useWorkspaceStore((state) => state.callouts);
+  const { markStep: markOnboardingStep, steps: onboardingSteps } = useOnboardingProgress(
+    useShallow((state) => ({
+      markStep: state.markStep,
+      steps: state.steps
+    }))
+  );
+
+  const templateHref = locale ? `/${locale}/templates` : "/templates";
+  const runBacktestHref = strategySummary && locale ? `/${locale}/strategies/${strategySummary.id}/designer` : undefined;
+
+  const handleTemplateBrowse = () => {
+    const currentStatus = onboardingSteps["load-template"]?.status;
+    if (currentStatus === "pending") {
+      markOnboardingStep("load-template", "in-progress", { source: "dashboard-checklist" });
+    }
+  };
 
   const initialStrategies = useMemo<Strategy[]>(
     () =>
@@ -107,6 +127,10 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
     );
 
     reset();
+
+    if (onboardingSteps["run-backtest"]?.status === "pending") {
+      markOnboardingStep("run-backtest", "in-progress", { source: "strategy-created" });
+    }
   };
 
   return (
@@ -121,6 +145,18 @@ export default function StrategiesWorkspace({ dictionary }: StrategiesWorkspaceP
           </h1>
           <p className="text-sm text-slate-400">{dictionary.description}</p>
         </header>
+
+        <div className="grid gap-6 items-start g:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <OnboardingChecklist
+            templateHref={templateHref}
+            runBacktestHref={runBacktestHref}
+            onTemplateSelect={handleTemplateBrowse}
+          />
+          <div className="grid gap-6">
+            <EducationHub />
+            <TemplateLibrary variant="compact" />
+          </div>
+        </div>
 
         {callouts.length > 0 && (
           <div className="grid gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">

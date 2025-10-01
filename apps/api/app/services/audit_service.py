@@ -45,3 +45,55 @@ async def record_workspace_bootstrap(
   )
 
   return event
+
+
+async def record_template_visibility(
+  session: AsyncSession,
+  actor: AuthenticatedUser,
+  template_ids: list[str]
+) -> ComplianceEvent:
+  """Log when curated templates are surfaced to a user."""
+
+  event = ComplianceEvent(
+    user_id=uuid.UUID(actor.id),
+    event_type="template.visibility",
+    payload={
+      "templateIds": template_ids,
+      "count": len(template_ids),
+      "timestamp": datetime.utcnow().isoformat()
+    }
+  )
+  session.add(event)
+
+  logger.info(
+    "template.visibility",
+    extra={"user_id": actor.id, "template_ids": template_ids, "count": len(template_ids)}
+  )
+
+  return event
+
+
+async def record_education_delivery(
+  session: AsyncSession,
+  actor: AuthenticatedUser,
+  panel_ids: list[str]
+) -> ComplianceEvent:
+  """Log when compliance education panels are returned."""
+
+  event = ComplianceEvent(
+    user_id=uuid.UUID(actor.id),
+    event_type="education.delivery",
+    payload={
+      "panelIds": panel_ids,
+      "count": len(panel_ids),
+      "timestamp": datetime.utcnow().isoformat()
+    }
+  )
+  session.add(event)
+
+  logger.info(
+    "education.delivery",
+    extra={"user_id": actor.id, "panel_ids": panel_ids, "count": len(panel_ids)}
+  )
+
+  return event
