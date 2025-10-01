@@ -279,10 +279,9 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
       if (!kind) {
         return;
       }
-      const bounds = event.currentTarget.getBoundingClientRect();
-      const position = reactFlowInstance.project({
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY
       });
       const definition = getBlockDefinition(kind);
       if (!definition) {
