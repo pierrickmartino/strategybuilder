@@ -489,9 +489,9 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
 
   return (
     <ReactFlowProvider>
-      <div className="flex h-full gap-4">
+      <div className="flex h-full w-full min-w-0 gap-4">
         <CanvasPalette />
-        <div className="flex min-h-0 flex-1 flex-col gap-4">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
           <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
             <div className="flex items-center gap-3 text-sm text-slate-300">
               <span className="rounded-md border border-slate-700 px-2 py-1 text-xs uppercase tracking-wide text-slate-400">
@@ -532,14 +532,15 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
               </button>
             </div>
           </header>
-          <div className="flex min-h-0 flex-1 gap-4">
+          <div className="flex min-h-0 min-w-0 flex-1 gap-4">
             <div
-              className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60"
+              className="flex flex-1 min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60"
               data-testid="canvas-surface"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
               <ReactFlow
+                className="flex-1"
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}

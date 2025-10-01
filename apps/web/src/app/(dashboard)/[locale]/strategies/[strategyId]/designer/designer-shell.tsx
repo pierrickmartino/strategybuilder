@@ -54,9 +54,9 @@ export default function StrategyDesignerShell({
           {dictionary.backAction}
         </Link>
       </header>
-      <section className="flex flex-1 min-h-0 flex-col gap-4 px-8 py-6">
+      <section className="flex w-full flex-1 min-h-0 flex-col gap-4 px-8 py-6">
         <p className="text-sm text-slate-400">{title}</p>
-        <div className="flex flex-1 min-h-0">
+        <div className="flex w-full flex-1 min-h-0">
           <DesignerCanvas strategyId={strategyId} />
         </div>
       </section>
