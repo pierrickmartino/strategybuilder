@@ -22,6 +22,7 @@ export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
   const loadVersion = useStrategyCanvas((state) => state.loadVersion);
   const persistableStrategyId = isUuid(strategyId) ? strategyId : null;
   const versionsQuery = useStrategyVersions(persistableStrategyId);
+  const latestRemoteVersion = versionsQuery.data?.[0] ?? null;
   const [currentVersion, setCurrentVersion] = useState<StrategyVersionSummary | null>(null);
   const initialisedRef = useRef(false);
 
@@ -58,15 +59,14 @@ export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
       return;
     }
 
-    if (persistableStrategyId && versionsQuery.data && versionsQuery.data.length > 0) {
-      const [latest] = versionsQuery.data;
+    if (persistableStrategyId && latestRemoteVersion) {
       loadVersion({
         strategyId,
-        versionId: latest.id,
-        graph: latest.graph,
-        issues: latest.validationIssues
+        versionId: latestRemoteVersion.id,
+        graph: latestRemoteVersion.graph,
+        issues: latestRemoteVersion.validationIssues
       });
-      setCurrentVersion(latest);
+      setCurrentVersion(latestRemoteVersion);
       initialisedRef.current = true;
       return;
     }
@@ -99,7 +99,7 @@ export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
     strategy,
     strategyId,
     version,
-    versionsQuery.data
+    latestRemoteVersion
   ]);
 
   const loading = useMemo(
