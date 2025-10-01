@@ -29,6 +29,7 @@ import {
   useStrategyVersions,
   useValidateStrategyGraph
 } from "@/hooks/use-strategy-versions";
+import { isUuid } from "@/lib/is-uuid";
 import { CanvasInspector } from "@/components/canvas/CanvasInspector";
 import { CanvasNode, type CanvasNodeData } from "@/components/canvas/CanvasNode";
 import { CanvasPalette } from "@/components/canvas/CanvasPalette";
@@ -172,10 +173,11 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
     shallow
   );
 
-  const versionsQuery = useStrategyVersions(strategyId);
-  const autosaveMutation = useAutosaveStrategyVersion(strategyId);
-  const validateMutation = useValidateStrategyGraph(strategyId);
-  const revertMutation = useRevertStrategyVersion(strategyId);
+  const persistableStrategyId = isUuid(strategyId) ? strategyId : null;
+  const versionsQuery = useStrategyVersions(persistableStrategyId);
+  const autosaveMutation = useAutosaveStrategyVersion(persistableStrategyId);
+  const validateMutation = useValidateStrategyGraph(persistableStrategyId);
+  const revertMutation = useRevertStrategyVersion(persistableStrategyId);
 
   const issuesByNode = useMemo(() => buildIssuesMap(validationState?.issues ?? []), [validationState]);
   const globalIssues = useMemo(
@@ -312,7 +314,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
   }, []);
 
   const handleValidate = useCallback(() => {
-    if (!graph || !versionId) {
+    if (!graph || !versionId || !persistableStrategyId) {
       return;
     }
     markValidationPending(versionId);
@@ -324,7 +326,15 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
       .catch((error: Error) => {
         setValidationError(versionId, error.message);
       });
-  }, [graph, markValidationPending, setValidationError, setValidationResult, validateMutation, versionId]);
+  }, [
+    graph,
+    markValidationPending,
+    persistableStrategyId,
+    setValidationError,
+    setValidationResult,
+    validateMutation,
+    versionId
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -363,7 +373,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
   }, [canRedo, canUndo, redo, undo, versionId]);
 
   useEffect(() => {
-    if (!graph || !dirty || autosaveMutation.isPending || !versionId) {
+    if (!graph || !dirty || autosaveMutation.isPending || !versionId || !persistableStrategyId) {
       return;
     }
     const handle = window.setTimeout(() => {
@@ -379,7 +389,16 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
     }, 1500);
 
     return () => window.clearTimeout(handle);
-  }, [autosaveMutation, dirty, graph, markSaved, setValidationError, setValidationResult, versionId]);
+  }, [
+    autosaveMutation,
+    dirty,
+    graph,
+    markSaved,
+    persistableStrategyId,
+    setValidationError,
+    setValidationResult,
+    versionId
+  ]);
 
   const handleParameterUpdate = useCallback(
     (parameterKey: string, value: number | string | boolean) => {
@@ -418,6 +437,9 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
     async (version: StrategyVersionSummary) => {
       setRevertingId(version.id);
       try {
+        if (!persistableStrategyId) {
+          return;
+        }
         const created = await revertMutation.mutateAsync(version.id);
         loadVersion({
           strategyId,
@@ -432,7 +454,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
         setRevertingId(null);
       }
     },
-    [loadVersion, onVersionSwitch, revertMutation, strategyId]
+    [loadVersion, onVersionSwitch, persistableStrategyId, revertMutation, strategyId]
   );
 
   useEffect(() => {

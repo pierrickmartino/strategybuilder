@@ -8,6 +8,7 @@ import "@xyflow/react/dist/style.css";
 
 import { StrategyCanvas } from "@/components/canvas/StrategyCanvas";
 import { useStrategyVersions } from "@/hooks/use-strategy-versions";
+import { isUuid } from "@/lib/is-uuid";
 import { useStrategyCanvas } from "@/stores/useStrategyCanvas";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 
@@ -19,7 +20,8 @@ export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
   const strategy = useWorkspaceStore((state) => state.strategy);
   const version = useWorkspaceStore((state) => state.version);
   const loadVersion = useStrategyCanvas((state) => state.loadVersion);
-  const versionsQuery = useStrategyVersions(strategyId);
+  const persistableStrategyId = isUuid(strategyId) ? strategyId : null;
+  const versionsQuery = useStrategyVersions(persistableStrategyId);
   const [currentVersion, setCurrentVersion] = useState<StrategyVersionSummary | null>(null);
   const initialisedRef = useRef(false);
 
@@ -56,7 +58,7 @@ export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
       return;
     }
 
-    if (versionsQuery.data && versionsQuery.data.length > 0) {
+    if (persistableStrategyId && versionsQuery.data && versionsQuery.data.length > 0) {
       const [latest] = versionsQuery.data;
       loadVersion({
         strategyId,
@@ -66,9 +68,34 @@ export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
       });
       setCurrentVersion(latest);
       initialisedRef.current = true;
+      return;
+    }
+
+    if (!persistableStrategyId) {
+      const now = new Date().toISOString();
+      const draft: StrategyVersionSummary = {
+        id: `${strategyId}-draft`,
+        version: 1,
+        label: "Draft",
+        graph: { nodes: [], edges: [] },
+        validationIssues: [],
+        createdAt: now,
+        updatedAt: null
+      };
+
+      loadVersion({
+        strategyId,
+        versionId: draft.id,
+        graph: draft.graph,
+        issues: draft.validationIssues
+      });
+
+      setCurrentVersion(draft);
+      initialisedRef.current = true;
     }
   }, [
     loadVersion,
+    persistableStrategyId,
     strategy,
     strategyId,
     version,
@@ -78,8 +105,17 @@ export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
   const loading = useMemo(
     () =>
       versionsQuery.isLoading ||
-      (!initialisedRef.current && (!strategy || strategy.id !== strategyId) && !versionsQuery.data),
-    [strategy, strategyId, versionsQuery.data, versionsQuery.isLoading]
+      (!initialisedRef.current &&
+        (!strategy || strategy.id !== strategyId) &&
+        persistableStrategyId !== null &&
+        !versionsQuery.data),
+    [
+      persistableStrategyId,
+      strategy,
+      strategyId,
+      versionsQuery.data,
+      versionsQuery.isLoading
+    ]
   );
 
   if (!currentVersion) {
