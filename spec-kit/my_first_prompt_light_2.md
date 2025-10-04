@@ -1,0 +1,9 @@
+Let me explain what Blockbuilders is. It’s a web app that lets non-coder retail crypto traders design, test, and monitor trading strategies without writing code. Instead of juggling spreadsheets, Pine Script, or opaque bots, you drag blocks onto a visual canvas—data sources, indicators, signals, risk controls, and execution—and connect them into a runnable strategy. The system validates your wiring in real time and versions your changes automatically. 
+
+When you’re ready, you run fast backtests (targeting ~30 seconds for a year of hourly BTC/ETH data) to see equity curves, KPIs, and trade logs. From there, you can schedule paper-trading to observe live-like performance. A comparison view lets you line up multiple strategies side-by-side to spot what’s working. The app guides new users with starter templates, a short onboarding checklist, and contextual education so most people can achieve a first successful backtest within minutes. 
+
+The initial audience is: hands-on retail tinkerers trading on major exchanges who want trustworthy, reproducible workflows. The MVP focuses on the strategy canvas, deterministic backtesting for BTC-USD and ETH-USD, a paper-trading scheduler with dashboards. Advanced cohort analytics, automated insight engines, and deep premium analytics are explicitly deferred until after the core loop proves itself. 
+
+Operationally, the product emphasizes speed, reliability (99.5% uptime target in beta), encryption/auditability, and observability across data quality and execution. Compliance is woven throughout with clear “simulation-only / not financial advice” messaging. 
+
+In short, Blockbuilders gives curious traders a safeguarded, visual lab to go from idea → backtest → paper-trade—fast—while keeping results reproducible, explainable, and compliant.
