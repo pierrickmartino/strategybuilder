@@ -1,0 +1,7 @@
+Let me explain what Levercast is. It's an application that helps entrepreneurs manage their social media posting more efficiently. Often when I'm reading an article or taking a walk, I'll come up with an idea for a thought piece or article. I want to quickly capture that idea through voice or text input. The app has an input box where I can dump these thoughts.
+
+The input then gets sent to an LLM that formats it based on custom template prompts I've set up in the application. It returns a tidied version of my thoughts, but it does more than that—it generates multiple versions optimized for different social platforms. For our MVP, we'll focus on LinkedIn and Twitter posts, with plans to add more platforms later.
+
+These generated posts will appear styled exactly as they would on their respective platforms, making it easy to preview the formatting. I can also add images to my input, and the app will adapt them appropriately for each platform. I can edit any of the outputs, and when I'm satisfied, publish them directly to those platforms. We'll use OAuth to connect Levercast with LinkedIn and Twitter accounts.
+
+In essence, Levercast helps busy entrepreneurs capture ideas and share them quickly across multiple platforms simultaneously. The key benefit is saving time while amplifying marketing efforts. As for the user interface, while I'll leave the specific design details to a professional designer, I know it will be a web application initially, with responsive design to support mobile access in the future.

@@ -45,6 +45,8 @@ const validateSpy = vi.fn();
 const autosaveSpy = vi.fn();
 const revertSpy = vi.fn();
 
+const STRATEGY_ID = "11111111-1111-4111-8111-111111111111";
+
 vi.mock("@/hooks/use-strategy-versions", () => {
   return {
     useStrategyVersions: () => ({
@@ -100,7 +102,7 @@ import { StrategyCanvas } from "@/components/canvas/StrategyCanvas";
 beforeEach(() => {
   useStrategyCanvas.getState().reset();
   useStrategyCanvas.getState().loadVersion({
-    strategyId: "strategy-1",
+    strategyId: STRATEGY_ID,
     versionId: "version-1",
     graph: {
       nodes: [
@@ -142,7 +144,7 @@ afterEach(() => {
 describe("StrategyCanvas integration", () => {
   it("runs validation and surfaces result summary", async () => {
     const onVersionSwitch = vi.fn();
-    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+    render(<StrategyCanvas strategyId={STRATEGY_ID} versionId="version-1" onVersionSwitch={onVersionSwitch} />);
 
     fireEvent.click(screen.getByRole("button", { name: /^validate$/i }));
 
@@ -156,7 +158,7 @@ describe("StrategyCanvas integration", () => {
       { nodeId: null, code: "quota_exceeded", message: "Quota exceeded for broker nodes", severity: "error" }
     ]);
 
-    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+    render(<StrategyCanvas strategyId={STRATEGY_ID} versionId="version-1" onVersionSwitch={onVersionSwitch} />);
 
     fireEvent.click(screen.getByRole("button", { name: /^validate$/i }));
 
@@ -167,7 +169,7 @@ describe("StrategyCanvas integration", () => {
 
   it("invokes callbacks when loading versions", async () => {
     const onVersionSwitch = vi.fn();
-    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+    render(<StrategyCanvas strategyId={STRATEGY_ID} versionId="version-1" onVersionSwitch={onVersionSwitch} />);
 
     fireEvent.click(screen.getByRole("button", { name: /Load/i }));
 
@@ -176,7 +178,7 @@ describe("StrategyCanvas integration", () => {
 
   it("shows revert success feedback", async () => {
     const onVersionSwitch = vi.fn();
-    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+    render(<StrategyCanvas strategyId={STRATEGY_ID} versionId="version-1" onVersionSwitch={onVersionSwitch} />);
 
     fireEvent.click(screen.getByRole("button", { name: /Revert/i }));
 
@@ -188,7 +190,7 @@ describe("StrategyCanvas integration", () => {
     const onVersionSwitch = vi.fn();
     useStrategyCanvas.getState().moveNode("version-1", "market", { x: 24, y: 18 });
 
-    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+    render(<StrategyCanvas strategyId={STRATEGY_ID} versionId="version-1" onVersionSwitch={onVersionSwitch} />);
 
     const undoButton = screen.getByTestId("canvas-undo");
     expect(undoButton).not.toBeDisabled();
@@ -215,7 +217,7 @@ describe("StrategyCanvas integration", () => {
     const onVersionSwitch = vi.fn();
     useStrategyCanvas.getState().moveNode("version-1", "market", { x: 12, y: 9 });
 
-    render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+    render(<StrategyCanvas strategyId={STRATEGY_ID} versionId="version-1" onVersionSwitch={onVersionSwitch} />);
 
     act(() => {
       window.dispatchEvent(new KeyboardEvent("keydown", { key: "z", metaKey: true }));
@@ -243,7 +245,7 @@ describe("StrategyCanvas integration", () => {
 
     try {
       const onVersionSwitch = vi.fn();
-      render(<StrategyCanvas strategyId="strategy-1" versionId="version-1" onVersionSwitch={onVersionSwitch} />);
+      render(<StrategyCanvas strategyId={STRATEGY_ID} versionId="version-1" onVersionSwitch={onVersionSwitch} />);
 
       const surface = screen.getByTestId("canvas-surface");
       Object.defineProperty(surface, "getBoundingClientRect", {

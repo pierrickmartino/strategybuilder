@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { StrategyVersionSummary } from "@strategybuilder/shared";
 
 import "@xyflow/react/dist/style.css";
 
 import { StrategyCanvas } from "@/components/canvas/StrategyCanvas";
+import { useStrategyVersions } from "@/hooks/use-strategy-versions";
+import { isUuid } from "@/lib/is-uuid";
 import { useStrategyCanvas } from "@/stores/useStrategyCanvas";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 
@@ -18,15 +20,23 @@ export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
   const strategy = useWorkspaceStore((state) => state.strategy);
   const version = useWorkspaceStore((state) => state.version);
   const loadVersion = useStrategyCanvas((state) => state.loadVersion);
+  const persistableStrategyId = isUuid(strategyId) ? strategyId : null;
+  const versionsQuery = useStrategyVersions(persistableStrategyId);
+  const latestRemoteVersion = versionsQuery.data?.[0] ?? null;
   const [currentVersion, setCurrentVersion] = useState<StrategyVersionSummary | null>(null);
   const initialisedRef = useRef(false);
 
   useEffect(() => {
-    if (!strategy || !version) {
+    initialisedRef.current = false;
+    setCurrentVersion(null);
+  }, [strategyId]);
+
+  useEffect(() => {
+    if (initialisedRef.current) {
       return;
     }
 
-    if (!initialisedRef.current) {
+    if (strategy && version && strategy.id === strategyId) {
       const summary: StrategyVersionSummary = {
         id: version.id,
         version: version.version,
@@ -46,20 +56,95 @@ export default function DesignerCanvas({ strategyId }: DesignerCanvasProps) {
 
       setCurrentVersion(summary);
       initialisedRef.current = true;
+      return;
     }
-  }, [loadVersion, strategy, version]);
 
-  if (!strategy || !currentVersion) {
+    if (persistableStrategyId && latestRemoteVersion) {
+      loadVersion({
+        strategyId,
+        versionId: latestRemoteVersion.id,
+        graph: latestRemoteVersion.graph,
+        issues: latestRemoteVersion.validationIssues
+      });
+      setCurrentVersion(latestRemoteVersion);
+      initialisedRef.current = true;
+      return;
+    }
+
+    if (!persistableStrategyId) {
+      const now = new Date().toISOString();
+      const draft: StrategyVersionSummary = {
+        id: `${strategyId}-draft`,
+        version: 1,
+        label: "Draft",
+        graph: { nodes: [], edges: [] },
+        validationIssues: [],
+        createdAt: now,
+        updatedAt: null
+      };
+
+      loadVersion({
+        strategyId,
+        versionId: draft.id,
+        graph: draft.graph,
+        issues: draft.validationIssues
+      });
+
+      setCurrentVersion(draft);
+      initialisedRef.current = true;
+    }
+  }, [
+    loadVersion,
+    persistableStrategyId,
+    strategy,
+    strategyId,
+    version,
+    latestRemoteVersion
+  ]);
+
+  const loading = useMemo(
+    () =>
+      versionsQuery.isLoading ||
+      (!initialisedRef.current &&
+        (!strategy || strategy.id !== strategyId) &&
+        persistableStrategyId !== null &&
+        !versionsQuery.data),
+    [
+      persistableStrategyId,
+      strategy,
+      strategyId,
+      versionsQuery.data,
+      versionsQuery.isLoading
+    ]
+  );
+
+  if (!currentVersion) {
+    if (versionsQuery.isError) {
+      return (
+        <div className="flex min-h-[420px] flex-1 items-center justify-center rounded-2xl border border-rose-700 bg-rose-950/60 px-6 text-center text-sm text-rose-100">
+          Failed to load the strategy canvas. Please refresh the page to try again.
+        </div>
+      );
+    }
+
+    if (loading) {
+      return (
+        <div className="flex min-h-[420px] flex-1 items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/60 text-sm text-slate-400">
+          Loading canvas…
+        </div>
+      );
+    }
+
     return (
       <div className="flex min-h-[420px] flex-1 items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/60 text-sm text-slate-400">
-        Loading canvas…
+        No saved versions were found for this strategy.
       </div>
     );
   }
 
   return (
     <StrategyCanvas
-      strategyId={strategy.id}
+      strategyId={strategyId}
       versionId={currentVersion.id}
       onVersionSwitch={(next) => setCurrentVersion(next)}
     />

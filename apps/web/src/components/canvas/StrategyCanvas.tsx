@@ -29,6 +29,7 @@ import {
   useStrategyVersions,
   useValidateStrategyGraph
 } from "@/hooks/use-strategy-versions";
+import { isUuid } from "@/lib/is-uuid";
 import { CanvasInspector } from "@/components/canvas/CanvasInspector";
 import { CanvasNode, type CanvasNodeData } from "@/components/canvas/CanvasNode";
 import { CanvasPalette } from "@/components/canvas/CanvasPalette";
@@ -172,10 +173,11 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
     shallow
   );
 
-  const versionsQuery = useStrategyVersions(strategyId);
-  const autosaveMutation = useAutosaveStrategyVersion(strategyId);
-  const validateMutation = useValidateStrategyGraph(strategyId);
-  const revertMutation = useRevertStrategyVersion(strategyId);
+  const persistableStrategyId = isUuid(strategyId) ? strategyId : null;
+  const versionsQuery = useStrategyVersions(persistableStrategyId);
+  const autosaveMutation = useAutosaveStrategyVersion(persistableStrategyId);
+  const validateMutation = useValidateStrategyGraph(persistableStrategyId);
+  const revertMutation = useRevertStrategyVersion(persistableStrategyId);
 
   const issuesByNode = useMemo(() => buildIssuesMap(validationState?.issues ?? []), [validationState]);
   const globalIssues = useMemo(
@@ -277,11 +279,21 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
       if (!kind) {
         return;
       }
-      const bounds = event.currentTarget.getBoundingClientRect();
-      const position = reactFlowInstance.project({
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top
-      });
+      type LegacyReactFlowInstance = ReactFlowInstance & {
+        project?: (position: { x: number; y: number }) => { x: number; y: number };
+      };
+
+      const convertPosition =
+        typeof reactFlowInstance.screenToFlowPosition === "function"
+          ? reactFlowInstance.screenToFlowPosition
+          : (reactFlowInstance as LegacyReactFlowInstance).project;
+
+      const position = convertPosition
+        ? convertPosition({
+            x: event.clientX,
+            y: event.clientY
+          })
+        : { x: event.clientX, y: event.clientY };
       const definition = getBlockDefinition(kind);
       if (!definition) {
         return;
@@ -312,7 +324,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
   }, []);
 
   const handleValidate = useCallback(() => {
-    if (!graph || !versionId) {
+    if (!graph || !versionId || !persistableStrategyId) {
       return;
     }
     markValidationPending(versionId);
@@ -324,7 +336,15 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
       .catch((error: Error) => {
         setValidationError(versionId, error.message);
       });
-  }, [graph, markValidationPending, setValidationError, setValidationResult, validateMutation, versionId]);
+  }, [
+    graph,
+    markValidationPending,
+    persistableStrategyId,
+    setValidationError,
+    setValidationResult,
+    validateMutation,
+    versionId
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -363,7 +383,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
   }, [canRedo, canUndo, redo, undo, versionId]);
 
   useEffect(() => {
-    if (!graph || !dirty || autosaveMutation.isPending || !versionId) {
+    if (!graph || !dirty || autosaveMutation.isPending || !versionId || !persistableStrategyId) {
       return;
     }
     const handle = window.setTimeout(() => {
@@ -379,7 +399,16 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
     }, 1500);
 
     return () => window.clearTimeout(handle);
-  }, [autosaveMutation, dirty, graph, markSaved, setValidationError, setValidationResult, versionId]);
+  }, [
+    autosaveMutation,
+    dirty,
+    graph,
+    markSaved,
+    persistableStrategyId,
+    setValidationError,
+    setValidationResult,
+    versionId
+  ]);
 
   const handleParameterUpdate = useCallback(
     (parameterKey: string, value: number | string | boolean) => {
@@ -418,6 +447,9 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
     async (version: StrategyVersionSummary) => {
       setRevertingId(version.id);
       try {
+        if (!persistableStrategyId) {
+          return;
+        }
         const created = await revertMutation.mutateAsync(version.id);
         loadVersion({
           strategyId,
@@ -432,7 +464,7 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
         setRevertingId(null);
       }
     },
-    [loadVersion, onVersionSwitch, revertMutation, strategyId]
+    [loadVersion, onVersionSwitch, persistableStrategyId, revertMutation, strategyId]
   );
 
   useEffect(() => {
@@ -468,9 +500,9 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
 
   return (
     <ReactFlowProvider>
-      <div className="flex h-full gap-4">
+      <div className="flex h-full w-full min-w-0 gap-4">
         <CanvasPalette />
-        <div className="flex min-h-0 flex-1 flex-col gap-4">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
           <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
             <div className="flex items-center gap-3 text-sm text-slate-300">
               <span className="rounded-md border border-slate-700 px-2 py-1 text-xs uppercase tracking-wide text-slate-400">
@@ -511,14 +543,15 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
               </button>
             </div>
           </header>
-          <div className="flex min-h-0 flex-1 gap-4">
+          <div className="flex min-h-0 min-w-0 flex-1 gap-4">
             <div
-              className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60"
+              className="flex flex-1 min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60"
               data-testid="canvas-surface"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
               <ReactFlow
+                className="flex-1"
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}
