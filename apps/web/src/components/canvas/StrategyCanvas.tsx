@@ -279,10 +279,21 @@ export function StrategyCanvas({ strategyId, versionId, onVersionSwitch }: Strat
       if (!kind) {
         return;
       }
-      const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY
-      });
+      type LegacyReactFlowInstance = ReactFlowInstance & {
+        project?: (position: { x: number; y: number }) => { x: number; y: number };
+      };
+
+      const convertPosition =
+        typeof reactFlowInstance.screenToFlowPosition === "function"
+          ? reactFlowInstance.screenToFlowPosition
+          : (reactFlowInstance as LegacyReactFlowInstance).project;
+
+      const position = convertPosition
+        ? convertPosition({
+            x: event.clientX,
+            y: event.clientY
+          })
+        : { x: event.clientX, y: event.clientY };
       const definition = getBlockDefinition(kind);
       if (!definition) {
         return;
